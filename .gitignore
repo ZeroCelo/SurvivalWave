@@ -52,6 +52,9 @@ SourceArt/**/*.tga
 
 # Binary Files
 Binaries/*
+!Binaries/Win64
+Binaries/Win64/*
+!Binaries/Win64/UE4Editor-SurvivalWave.dll
 
 # Builds
 Build/*
@@ -79,5 +82,6 @@ Content/*
 !Content/Maps/
 !Content/DemoRoom/
 !Content/ExampleContent
+!Config/DefaultInput.ini
 Source/*
 !Source/SurvivalWave/
