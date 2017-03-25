@@ -70,7 +70,7 @@ public:
 	virtual void BeginPlay() override;
 
 	UFUNCTION( BlueprintImplementableEvent)
-	void UpdateAnim();
+	void UpdateAnimRun();
 
 	void EnableRun();
 	void DisableRun();

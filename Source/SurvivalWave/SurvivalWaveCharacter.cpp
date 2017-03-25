@@ -155,11 +155,11 @@ void ASurvivalWaveCharacter::BeginPlay() {
 void ASurvivalWaveCharacter::EnableRun() {
 	running = true;
 	GetCharacterMovement()->MaxWalkSpeed = speed_run;
-	UpdateAnim();
+	UpdateAnimRun();
 }
 
 void ASurvivalWaveCharacter::DisableRun() {
 	running = false;
 	GetCharacterMovement()->MaxWalkSpeed = speed_walk;
-	UpdateAnim();
+	UpdateAnimRun();
 }
