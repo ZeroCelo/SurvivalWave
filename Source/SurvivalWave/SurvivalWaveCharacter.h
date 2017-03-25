@@ -65,5 +65,23 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	UFUNCTION( BlueprintImplementableEvent)
+	void UpdateAnim();
+
+	void EnableRun();
+	void DisableRun();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Moving")
+	bool running;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
+	float speed_run;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
+	float speed_walk;
 };
 

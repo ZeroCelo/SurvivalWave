@@ -42,6 +42,10 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+
+	running = false;
+	speed_run = 600.0f;
+	speed_walk = 250.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,6 +76,8 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 
 	// VR headset functionality
 	//PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ASurvivalWaveCharacter::OnResetVR);
+	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &ASurvivalWaveCharacter::EnableRun);
+	PlayerInputComponent->BindAction("Run", IE_Released, this, &ASurvivalWaveCharacter::DisableRun);
 }
 
 
@@ -113,13 +119,20 @@ void ASurvivalWaveCharacter::MoveForward(float Value)
 		// get forward vector
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire DirForward %f,%f,%f"), Direction.X,Direction.Y,Direction.Z));
-		AddMovementInput(Direction, Value);
+		if (!running) {
+			AddMovementInput(Direction, Value);
+		}
+		else {
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("DirForward %f,%f,%f"), Direction.X, Direction.Y, Direction.Z));
+			if(Value >= 0.0f)
+				AddMovementInput(Direction, Value);
+		}
 	}
 }
 
 void ASurvivalWaveCharacter::MoveRight(float Value)
 {
-	if ( (Controller != NULL) && (Value != 0.0f) )
+	if ( (Controller != NULL) && (Value != 0.0f) && !running)
 	{
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -129,6 +142,24 @@ void ASurvivalWaveCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire DirRight %f,%f,%f"), Direction.X, Direction.Y, Direction.Z));
-		AddMovementInput(Direction, Value);
+		if(!running)
+			AddMovementInput(Direction, Value);
 	}
+}
+
+void ASurvivalWaveCharacter::BeginPlay() {
+	Super::BeginPlay();
+	DisableRun();
+}
+
+void ASurvivalWaveCharacter::EnableRun() {
+	running = true;
+	GetCharacterMovement()->MaxWalkSpeed = speed_run;
+	UpdateAnim();
+}
+
+void ASurvivalWaveCharacter::DisableRun() {
+	running = false;
+	GetCharacterMovement()->MaxWalkSpeed = speed_walk;
+	UpdateAnim();
 }
