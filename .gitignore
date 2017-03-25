@@ -77,6 +77,7 @@ Content/*
 !Content/Animations/
 !Content/Blueprints/
 !Content/Maps/
-# !Content/DemoRoom/
+!Content/DemoRoom/
+!Content/ExampleContent
 Source/*
 !Source/SurvivalWave/
