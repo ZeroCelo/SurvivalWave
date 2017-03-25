@@ -123,8 +123,8 @@ void ASurvivalWaveCharacter::MoveForward(float Value)
 			AddMovementInput(Direction, Value);
 		}
 		else {
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("DirForward %f,%f,%f"), Direction.X, Direction.Y, Direction.Z));
-			if(Value >= 0.0f)
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("DirForward %f"), Value));
+			if(Value >= 0.9f)
 				AddMovementInput(Direction, Value);
 		}
 	}
