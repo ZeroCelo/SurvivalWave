@@ -69,19 +69,52 @@ public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Called every frame
+	void Tick(float DeltaTime);
+
+	//Control small animation for fov change
+	//FTimerHandle fov_timer;
+
+	float fov_check;
+	float fov_elapsed;
+	//Maximum time in seconds
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
+	float fov_max_time;
+
+	void StartFOV(float new_fov);
+	void UpdateFOV(float DeltaTime);
+
 	UFUNCTION( BlueprintImplementableEvent)
 	void UpdateAnimRun();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateAnimAim();
 
 	void EnableRun();
 	void DisableRun();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Moving")
+	void EnableAim();
+	void DisableAim();
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
 	bool running;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
+	bool aiming;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
 	float speed_run;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
 	float speed_walk;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
+	float fov_normal;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
+	float fov_aim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
+	float fov_run;
 };
 
