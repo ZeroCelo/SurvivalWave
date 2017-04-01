@@ -70,31 +70,33 @@ public:
 	virtual void BeginPlay() override;
 
 	// Called every frame
-	void Tick(float DeltaTime);
+	virtual void Tick(float DeltaTime) override;
 
-	//Control small animation for fov change
-	//FTimerHandle fov_timer;
-
-	float fov_check;
-	float fov_elapsed;
-	//Maximum time in seconds
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
-	float fov_max_time;
-
-	void StartFOV(float new_fov);
+	void ChangeFOV(float new_fov);
 	void UpdateFOV(float DeltaTime);
 
+	//Blueprint event to pass Run Animation variables
 	UFUNCTION( BlueprintImplementableEvent)
 	void UpdateAnimRun();
 
+	//Blueprint event to pass Aim Animation variables
 	UFUNCTION(BlueprintImplementableEvent)
 	void UpdateAnimAim();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateAnimFire();
 
 	void EnableRun();
 	void DisableRun();
 
 	void EnableAim();
 	void DisableAim();
+
+	void EnableFire();
+	void DisableFire();
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
+	bool firing;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
 	bool running;
@@ -106,7 +108,7 @@ public:
 	float speed_run;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
-	float speed_walk;
+	float speed_normal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
 	float fov_normal;
@@ -116,5 +118,18 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
 	float fov_run;
+
+	//Maximum time in seconds for the fov change animation
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
+	float fov_max_time;
+
+	float fov_check;
+	float fov_elapsed;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Life")
+	float life;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Life")
+	float life_max;
 };
 

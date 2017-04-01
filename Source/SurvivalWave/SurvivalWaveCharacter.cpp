@@ -45,14 +45,17 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	
 	running = false;
 	aiming = false;
+	firing = false;
 	speed_run = 600.0f;
-	speed_walk = 250.0f;
+	speed_normal = 250.0f;
 	fov_normal = 90.0f;
 	fov_aim = 60.0f;
 	fov_run = 120.0f;
 	fov_check = 90.0f;
 	fov_max_time = 1.0f;
 	fov_elapsed = fov_max_time;
+	life_max = 100.0f;
+	life = life_max;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,6 +90,8 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Run", IE_Released, this, &ASurvivalWaveCharacter::DisableRun);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ASurvivalWaveCharacter::EnableAim);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ASurvivalWaveCharacter::DisableAim);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASurvivalWaveCharacter::EnableFire);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASurvivalWaveCharacter::DisableFire);
 }
 
 
@@ -173,7 +178,7 @@ void ASurvivalWaveCharacter::EnableRun() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
 	GetCharacterMovement()->MaxWalkSpeed = speed_run;
 	//FollowCamera->FieldOfView = fov_normal;
-	StartFOV(fov_run);
+	ChangeFOV(fov_run);
 	//FollowCamera->FieldOfView = fov_run;
 	UpdateAnimRun();
 	UpdateAnimAim();
@@ -181,18 +186,18 @@ void ASurvivalWaveCharacter::EnableRun() {
 
 void ASurvivalWaveCharacter::DisableRun() {
 	running = false;
-	GetCharacterMovement()->MaxWalkSpeed = speed_walk;
+	GetCharacterMovement()->MaxWalkSpeed = speed_normal;
 	//FollowCamera->FieldOfView = fov_normal;
-	if(!aiming)StartFOV(fov_normal);
+	if(!aiming)ChangeFOV(fov_normal);
 	UpdateAnimRun();
 }
 
 void ASurvivalWaveCharacter::EnableAim() {
 	aiming = true;
 	running = false;
-	GetCharacterMovement()->MaxWalkSpeed = speed_walk;
+	GetCharacterMovement()->MaxWalkSpeed = speed_normal;
 	//FollowCamera->FieldOfView = fov_aim;
-	StartFOV(fov_aim);
+	ChangeFOV(fov_aim);
 	
 	UpdateAnimAim();
 	UpdateAnimRun();
@@ -201,11 +206,23 @@ void ASurvivalWaveCharacter::EnableAim() {
 void ASurvivalWaveCharacter::DisableAim() {
 	aiming = false;
 	//FollowCamera->FieldOfView = fov_normal;
-	if(!running)StartFOV(fov_normal);
+	if(!running)ChangeFOV(fov_normal);
 	UpdateAnimAim();
 }
 
-void ASurvivalWaveCharacter::StartFOV(float new_fov) {
+void ASurvivalWaveCharacter::EnableFire() {
+	firing = true;
+	UpdateAnimFire();
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire")));
+}
+
+void ASurvivalWaveCharacter::DisableFire() {
+	firing = false;
+	UpdateAnimFire();
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("UnFire")));
+}
+
+void ASurvivalWaveCharacter::ChangeFOV(float new_fov) {
 	fov_check = new_fov;
 	fov_elapsed = 0.0f;
 	//GetWorld()->GetTimerManager().SetTimer(fov_timer, this, &ASurvivalWaveCharacter::UpdateFOV, 1.0f / fov_cnt_max, true);
@@ -220,8 +237,5 @@ void ASurvivalWaveCharacter::UpdateFOV(float DeltaTime) {
 		float remain = fov_elapsed / fov_max_time;
 		FollowCamera->FieldOfView += remain*part;
 		fov_elapsed += DeltaTime;
-	}
-	else {
-		//GetWorld()->GetTimerManager().ClearTimer(fov_timer);
 	}
 }
