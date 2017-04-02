@@ -81,6 +81,7 @@ Content/*
 !Content/Blueprints/
 !Content/Maps/
 !Content/DemoRoom/
+!Content/SFX/
 !Content/ExampleContent
 !Config/DefaultInput.ini
 Source/*
