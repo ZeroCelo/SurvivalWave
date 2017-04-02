@@ -3,6 +3,8 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Components/ArrowComponent.h"
+
 #include "TestWeapon.generated.h"
 
 UCLASS()
@@ -22,6 +24,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
+	class UStaticMeshComponent* BaseMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
+	class USkeletalMeshComponent* SkelMesh;
 	
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	class UArrowComponent* FirePoint;
 };

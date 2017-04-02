@@ -82,6 +82,7 @@ Content/*
 !Content/Maps/
 !Content/DemoRoom/
 !Content/SFX/
+!Content/Weapons/
 !Content/ExampleContent
 !Config/DefaultInput.ini
 Source/*
