@@ -1,6 +1,8 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameFramework/Character.h"
+//#include "TestWeapon.h"
+
 #include "SurvivalWaveCharacter.generated.h"
 
 UCLASS(config=Game)
@@ -76,7 +78,7 @@ public:
 	void UpdateFOV(float DeltaTime);
 
 	//Blueprint event to pass Run Animation variables
-	UFUNCTION( BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent)
 	void UpdateAnimRun();
 
 	//Blueprint event to pass Aim Animation variables
@@ -94,6 +96,14 @@ public:
 
 	void EnableFire();
 	void DisableFire();
+
+	UFUNCTION(BlueprintCallable, Category = "Pickup")
+	void PickupWeapon(TSubclassOf<class ATestWeapon> WhatWeapon);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	class ATestWeapon* Weapon1;
+	//TSubclassOf<class ATestWeapon> Weapon1;
+	
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
 	bool firing;

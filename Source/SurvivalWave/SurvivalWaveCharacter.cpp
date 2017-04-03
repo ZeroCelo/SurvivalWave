@@ -3,6 +3,8 @@
 #include "SurvivalWave.h"
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
 #include "SurvivalWaveCharacter.h"
+#include "TestWeapon.h"
+
 //#include "EngineGlobals.h"
 #include "Engine.h"
 
@@ -173,6 +175,7 @@ void ASurvivalWaveCharacter::Tick(float DeltaTime)
 }
 
 void ASurvivalWaveCharacter::EnableRun() {
+	DisableFire();
 	running = true;
 	aiming = false;
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
@@ -211,15 +214,24 @@ void ASurvivalWaveCharacter::DisableAim() {
 }
 
 void ASurvivalWaveCharacter::EnableFire() {
+	DisableRun();
 	firing = true;
+	if (Weapon1 != nullptr)
+		Weapon1->StartFire();
 	UpdateAnimFire();
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire")));
 }
 
 void ASurvivalWaveCharacter::DisableFire() {
 	firing = false;
+	if (Weapon1 != nullptr)
+		Weapon1->StopFire();
 	UpdateAnimFire();
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("UnFire")));
+}
+
+void ASurvivalWaveCharacter::PickupWeapon(TSubclassOf<class ATestWeapon> WhatWeapon) {
+
 }
 
 void ASurvivalWaveCharacter::ChangeFOV(float new_fov) {

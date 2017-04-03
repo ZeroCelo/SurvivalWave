@@ -32,4 +32,41 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	class UArrowComponent* FirePoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	float damage;
+
+	//In Unreal units
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	float damage_range;
+
+	//Firing rate in seconds
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	float damage_rate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	float damage_ammo_cap;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
+	float damage_ammo;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
+	FTimerHandle FireTimer;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
+	bool hitting;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
+	FVector HitLocation;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	//float damage_ammo_total;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	//float damage_ammo_total_cap;
+
+	//UFUNCTION(BlueprintImplementableEvent)
+	void StartFire();
+	void StopFire();
+	void Shoot();
 };
