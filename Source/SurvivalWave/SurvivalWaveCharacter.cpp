@@ -181,18 +181,21 @@ void ASurvivalWaveCharacter::EnableRun() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
 	GetCharacterMovement()->MaxWalkSpeed = speed_run;
 	//FollowCamera->FieldOfView = fov_normal;
-	ChangeFOV(fov_run);
+	//float cur_speed = FVector::DotProduct(GetVelocity(), GetActorRotation().Vector());
+	//if(cur_speed > 10.0f)ChangeFOV(fov_run);
 	//FollowCamera->FieldOfView = fov_run;
 	UpdateAnimRun();
 	UpdateAnimAim();
+	CheckFOV();
 }
 
 void ASurvivalWaveCharacter::DisableRun() {
 	running = false;
 	GetCharacterMovement()->MaxWalkSpeed = speed_normal;
 	//FollowCamera->FieldOfView = fov_normal;
-	if(!aiming)ChangeFOV(fov_normal);
+	//if(!aiming)ChangeFOV(fov_normal);
 	UpdateAnimRun();
+	CheckFOV();
 }
 
 void ASurvivalWaveCharacter::EnableAim() {
@@ -200,17 +203,19 @@ void ASurvivalWaveCharacter::EnableAim() {
 	running = false;
 	GetCharacterMovement()->MaxWalkSpeed = speed_normal;
 	//FollowCamera->FieldOfView = fov_aim;
-	ChangeFOV(fov_aim);
+	//ChangeFOV(fov_aim);
 	
 	UpdateAnimAim();
 	UpdateAnimRun();
+	CheckFOV();
 }
 
 void ASurvivalWaveCharacter::DisableAim() {
 	aiming = false;
 	//FollowCamera->FieldOfView = fov_normal;
-	if(!running)ChangeFOV(fov_normal);
+	//if(!running)ChangeFOV(fov_normal);
 	UpdateAnimAim();
+	CheckFOV();
 }
 
 void ASurvivalWaveCharacter::EnableFire() {
@@ -240,9 +245,34 @@ void ASurvivalWaveCharacter::ChangeFOV(float new_fov) {
 	//GetWorld()->GetTimerManager().SetTimer(fov_timer, this, &ASurvivalWaveCharacter::UpdateFOV, 1.0f / fov_cnt_max, true);
 }
 
+void ASurvivalWaveCharacter::CheckFOV() {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Vel %f,%f,%f"), GetVelocity().X,GetVelocity().Y, GetVelocity().Z));
+	//float cur_speed = FVector::DotProduct(vel_temp, GetActorRotation().Vector());
+	
+	if (aiming && !running) {
+		ChangeFOV(fov_aim);
+	}
+	else if (!aiming && running) {
+			ChangeFOV(fov_run);
+	}
+	else if (aiming && running) {
+		if (GetCharacterMovement()->MaxWalkSpeed == speed_run) {
+			//if(cur_speed > 10.0f)
+				ChangeFOV(fov_run);
+		}
+		else {
+			ChangeFOV(fov_aim);
+		}
+		
+	}
+	else {
+		ChangeFOV(fov_normal);
+	}
+}
+
 void ASurvivalWaveCharacter::UpdateFOV(float DeltaTime) {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("FOV %d"),fov_cnt));
-
+	//CheckFOV();
 	if (fov_elapsed < fov_max_time) {
 		float part = fov_check - FollowCamera->FieldOfView;
 		part /= fov_max_time;

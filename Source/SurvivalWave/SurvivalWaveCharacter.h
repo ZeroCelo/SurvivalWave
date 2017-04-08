@@ -74,8 +74,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable, Category = "Cam")
 	void ChangeFOV(float new_fov);
 	void UpdateFOV(float DeltaTime);
+	void CheckFOV();
 
 	//Blueprint event to pass Run Animation variables
 	UFUNCTION(BlueprintImplementableEvent)
