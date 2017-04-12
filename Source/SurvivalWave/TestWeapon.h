@@ -33,31 +33,31 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	class UArrowComponent* FirePoint;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	float damage;
 
 	//In Unreal units
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	float damage_range;
 
 	//Firing rate in seconds
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	float damage_rate;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	float damage_ammo_cap;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 	float damage_ammo;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
 	FTimerHandle FireTimer;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
-	bool hitting;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
+	//bool hitting;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
-	FVector HitLocation;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
+	//FVector HitLocation;
 
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	//float damage_ammo_total;
@@ -65,8 +65,26 @@ public:
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	//float damage_ammo_total_cap;
 
+	/* Debug shot trace lines*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	bool trace_debug;
+
+	/** FX for muzzle flash */
+	UPROPERTY(EditDefaultsOnly, Category = Effects)
+	UParticleSystem* MuzzleFX;
+
+	/** spawned component for muzzle FX */
+	UPROPERTY(Transient)
+	UParticleSystemComponent* MuzzlePSC;
+
 	//UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Fire")
+	void ShootImpact(FHitResult HitResult);
 	void StartFire();
 	void StopFire();
 	void Shoot();
+	/* Start Simulating Firing Effects*/
+	virtual void SimulateFire();
+	/* Stop Simulating Firing Effects*/
+	virtual void SimulateFireStop();
 };

@@ -22,13 +22,13 @@ ATestWeapon::ATestWeapon()
 	FirePoint->SetupAttachment(RootComponent);
 
 	damage = 10.0f;
-	damage_range = 1500.0f;
+	damage_range = 5000.0f;
 	damage_rate = 0.25f;
 	damage_ammo_cap = 30.0f;
 	damage_ammo = damage_ammo_cap;
 	//damage_ammo_total_cap = damage_ammo_cap*4.0f;
 	//damage_ammo_total = damage_ammo_cap*2.0f;
-	hitting = false;
+	trace_debug = false;
 
 }
 
@@ -55,7 +55,8 @@ void ATestWeapon::Shoot() {
 	//RV_TraceParams.debug
 	const FName TraceTag("MyTraceTag");
 	GetWorld()->DebugDrawTraceTag = TraceTag;
-	RV_TraceParams.TraceTag = TraceTag;
+	if(trace_debug)
+		RV_TraceParams.TraceTag = TraceTag;
 
 	//Re-initialize hit info
 	FHitResult RV_Hit(ForceInit);
@@ -71,8 +72,11 @@ void ATestWeapon::Shoot() {
 		ECC_Pawn, //collision channel
 		RV_TraceParams
 	);
-	hitting = RV_Hit.bBlockingHit;
-	HitLocation = RV_Hit.Location;
+	if (RV_Hit.bBlockingHit)
+		ShootImpact(RV_Hit);
+	//hitting = RV_Hit.bBlockingHit;
+	//HitLocation = RV_Hit.Location;
+	SimulateFire();
 }
 
 void ATestWeapon::StartFire() {
@@ -82,5 +86,23 @@ void ATestWeapon::StartFire() {
 
 void ATestWeapon::StopFire() {
 	GetWorld()->GetTimerManager().ClearTimer(FireTimer);
-	hitting = false;
+	//hitting = false;
+	SimulateFireStop();
+}
+
+void ATestWeapon::SimulateFire() {
+	if (MuzzleFX != nullptr && MuzzlePSC == nullptr) {
+		//MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, FirePoint, NAME_None,FirePoint->RelativeLocation,FirePoint->RelativeRotation);
+		MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, FirePoint);
+		//MuzzlePSC->bOwnerNoSee = false;
+		//MuzzlePSC->bOnlyOwnerSee = true;
+	}
+}
+
+void ATestWeapon::SimulateFireStop() {
+	if (MuzzlePSC != nullptr)
+	{
+		MuzzlePSC->DeactivateSystem();
+		MuzzlePSC = nullptr;
+	}
 }

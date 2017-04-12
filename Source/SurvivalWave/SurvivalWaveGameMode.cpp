@@ -3,6 +3,8 @@
 #include "SurvivalWave.h"
 #include "SurvivalWaveGameMode.h"
 #include "SurvivalWaveCharacter.h"
+#include "Runtime/UMG/Public/UMG.h"
+#include "Blueprint/UserWidget.h"
 
 ASurvivalWaveGameMode::ASurvivalWaveGameMode()
 {
@@ -11,5 +13,20 @@ ASurvivalWaveGameMode::ASurvivalWaveGameMode()
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
+	}
+
+	//Setup the HUD
+	if (GameHUDClass != nullptr) {
+		gameHUD = CreateWidget<UUserWidget>(GetWorld(), GameHUDClass);
+		if (gameHUD != nullptr) gameHUD->AddToViewport();
+	}
+}
+
+void ASurvivalWaveGameMode::BeginPlay(){
+	Super::BeginPlay();
+	//Setup the HUD
+	if (GameHUDClass != nullptr) {
+		gameHUD = CreateWidget<UUserWidget>(GetWorld(), GameHUDClass);
+		if (gameHUD != nullptr) gameHUD->AddToViewport();
 	}
 }
