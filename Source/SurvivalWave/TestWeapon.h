@@ -53,17 +53,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
 	FTimerHandle FireTimer;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
-	//bool hitting;
+	FTimerHandle MuzzleTimer;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Fire")
-	//FVector HitLocation;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
-	//float damage_ammo_total;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
-	//float damage_ammo_total_cap;
+	float last_fire;
 
 	/* Debug shot trace lines*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")

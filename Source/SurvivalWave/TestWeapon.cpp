@@ -29,14 +29,14 @@ ATestWeapon::ATestWeapon()
 	//damage_ammo_total_cap = damage_ammo_cap*4.0f;
 	//damage_ammo_total = damage_ammo_cap*2.0f;
 	trace_debug = false;
-
+	last_fire = 0.0f;
 }
 
 // Called when the game starts or when spawned
 void ATestWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	//damage_ammo = damage_ammo_cap;
 }
 
 // Called every frame
@@ -47,46 +47,55 @@ void ATestWeapon::Tick(float DeltaTime)
 }
 
 void ATestWeapon::Shoot() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Shoot")));
-	FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
-	RV_TraceParams.bTraceComplex = true;
-	RV_TraceParams.bTraceAsyncScene = true;
-	RV_TraceParams.bReturnPhysicalMaterial = false;
-	//RV_TraceParams.debug
-	const FName TraceTag("MyTraceTag");
-	GetWorld()->DebugDrawTraceTag = TraceTag;
-	if(trace_debug)
-		RV_TraceParams.TraceTag = TraceTag;
+	float game_time = GetWorld()->GetTimeSeconds();
+	float dif_time = game_time - last_fire;
+	if (dif_time >= damage_rate || last_fire == 0.0f) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Shoot")));
+		FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
+		RV_TraceParams.bTraceComplex = true;
+		RV_TraceParams.bTraceAsyncScene = true;
+		RV_TraceParams.bReturnPhysicalMaterial = false;
+		//RV_TraceParams.debug
+		const FName TraceTag("MyTraceTag");
+		GetWorld()->DebugDrawTraceTag = TraceTag;
+		if (trace_debug)
+			RV_TraceParams.TraceTag = TraceTag;
 
-	//Re-initialize hit info
-	FHitResult RV_Hit(ForceInit);
+		//Re-initialize hit info
+		FHitResult RV_Hit(ForceInit);
 
-	FVector start = FirePoint->GetComponentTransform().GetLocation();
-	FVector end = start + FirePoint->GetComponentTransform().GetRotation().Vector()*damage_range;
+		FVector start = FirePoint->GetComponentTransform().GetLocation();
+		FVector end = start + FirePoint->GetComponentTransform().GetRotation().Vector()*damage_range;
 
-	//call GetWorld() from within an actor extending class
-	GetWorld()->LineTraceSingleByChannel(
-		RV_Hit,        //result
-		start,    //start
-		end, //end
-		ECC_Pawn, //collision channel
-		RV_TraceParams
-	);
-	if (RV_Hit.bBlockingHit)
-		ShootImpact(RV_Hit);
-	//hitting = RV_Hit.bBlockingHit;
-	//HitLocation = RV_Hit.Location;
-	SimulateFire();
+		//call GetWorld() from within an actor extending class
+		GetWorld()->LineTraceSingleByChannel(
+			RV_Hit,        //result
+			start,    //start
+			end, //end
+			ECC_Pawn, //collision channel
+			RV_TraceParams
+		);
+		if (RV_Hit.bBlockingHit)
+			ShootImpact(RV_Hit);
+		//hitting = RV_Hit.bBlockingHit;
+		//HitLocation = RV_Hit.Location;
+		last_fire = GetWorld()->GetTimeSeconds();
+		SimulateFire();
+	}
+	GetWorld()->GetTimerManager().SetTimer(FireTimer, this, &ATestWeapon::Shoot, last_fire + damage_rate - game_time, false);
+	GetWorld()->GetTimerManager().SetTimer(MuzzleTimer, this, &ATestWeapon::SimulateFireStop, 0.1f, false);
 }
 
 void ATestWeapon::StartFire() {
 	Shoot();
-	GetWorld()->GetTimerManager().SetTimer(FireTimer, this, &ATestWeapon::Shoot, damage_rate, true);
+	//GetWorld()->GetTimerManager().SetTimer(FireTimer, this, &ATestWeapon::Shoot, damage_rate, true);
 }
 
 void ATestWeapon::StopFire() {
 	GetWorld()->GetTimerManager().ClearTimer(FireTimer);
+	GetWorld()->GetTimerManager().ClearTimer(MuzzleTimer);
 	//hitting = false;
+	//GetWorld()->GetTimeSeconds();
 	SimulateFireStop();
 }
 

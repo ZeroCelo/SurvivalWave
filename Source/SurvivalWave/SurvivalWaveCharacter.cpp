@@ -48,6 +48,7 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	running = false;
 	aiming = false;
 	firing = false;
+	switching = false;
 	speed_run = 600.0f;
 	speed_normal = 250.0f;
 	fov_normal = 90.0f;
@@ -58,6 +59,10 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	fov_elapsed = fov_max_time;
 	life_max = 100.0f;
 	life = life_max;
+	weapon_select = 1;
+	Weapon.Add(nullptr);
+	Weapon.Add(nullptr);
+	Weapon.Add(nullptr);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -94,6 +99,8 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ASurvivalWaveCharacter::DisableAim);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASurvivalWaveCharacter::EnableFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASurvivalWaveCharacter::DisableFire);
+	PlayerInputComponent->BindAction("PreviousGun", IE_Pressed, this, &ASurvivalWaveCharacter::PreviousGunPress);
+	//PlayerInputComponent->BindAction("PreviousGun", IE_Released, this, &ASurvivalWaveCharacter::DisableFire);
 }
 
 
@@ -175,18 +182,20 @@ void ASurvivalWaveCharacter::Tick(float DeltaTime)
 }
 
 void ASurvivalWaveCharacter::EnableRun() {
-	DisableFire();
-	running = true;
-	aiming = false;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
-	GetCharacterMovement()->MaxWalkSpeed = speed_run;
-	//FollowCamera->FieldOfView = fov_normal;
-	//float cur_speed = FVector::DotProduct(GetVelocity(), GetActorRotation().Vector());
-	//if(cur_speed > 10.0f)ChangeFOV(fov_run);
-	//FollowCamera->FieldOfView = fov_run;
-	UpdateAnimRun();
-	UpdateAnimAim();
-	CheckFOV();
+	if (!switching) {
+		DisableFire();
+		running = true;
+		aiming = false;
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
+		GetCharacterMovement()->MaxWalkSpeed = speed_run;
+		//FollowCamera->FieldOfView = fov_normal;
+		//float cur_speed = FVector::DotProduct(GetVelocity(), GetActorRotation().Vector());
+		//if(cur_speed > 10.0f)ChangeFOV(fov_run);
+		//FollowCamera->FieldOfView = fov_run;
+		UpdateAnimRun();
+		UpdateAnimAim();
+		CheckFOV();
+	}
 }
 
 void ASurvivalWaveCharacter::DisableRun() {
@@ -199,15 +208,17 @@ void ASurvivalWaveCharacter::DisableRun() {
 }
 
 void ASurvivalWaveCharacter::EnableAim() {
-	aiming = true;
-	running = false;
-	GetCharacterMovement()->MaxWalkSpeed = speed_normal;
-	//FollowCamera->FieldOfView = fov_aim;
-	//ChangeFOV(fov_aim);
-	
-	UpdateAnimAim();
-	UpdateAnimRun();
-	CheckFOV();
+	if (!switching) {
+		aiming = true;
+		running = false;
+		GetCharacterMovement()->MaxWalkSpeed = speed_normal;
+		//FollowCamera->FieldOfView = fov_aim;
+		//ChangeFOV(fov_aim);
+
+		UpdateAnimAim();
+		UpdateAnimRun();
+		CheckFOV();
+	}
 }
 
 void ASurvivalWaveCharacter::DisableAim() {
@@ -219,24 +230,41 @@ void ASurvivalWaveCharacter::DisableAim() {
 }
 
 void ASurvivalWaveCharacter::EnableFire() {
-	DisableRun();
-	firing = true;
-	if (Weapon1 != nullptr)
-		Weapon1->StartFire();
-	UpdateAnimFire();
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire")));
+	if (!switching) {
+		DisableRun();
+		firing = true;
+		if (Weapon[weapon_select] != nullptr)
+			Weapon[weapon_select]->StartFire();
+		UpdateAnimFire();
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire")));
+	}
 }
 
 void ASurvivalWaveCharacter::DisableFire() {
 	firing = false;
-	if (Weapon1 != nullptr)
-		Weapon1->StopFire();
+	if (Weapon[weapon_select] != nullptr)
+		Weapon[weapon_select]->StopFire();
 	UpdateAnimFire();
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("UnFire")));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("UnFire")));
+}
+
+void ASurvivalWaveCharacter::SwitchGun(int32 ind) {
+	weapon_select = weapon_select % 2;
+	weapon_select++;
+	SwitchGunBP();
+}
+
+void ASurvivalWaveCharacter::PreviousGunPress() {
+	switching = true;
+	DisableFire();
+	DisableAim();
+	DisableRun();
+	DisableFire();
+	UpdateAnimSwitch();
 }
 
 void ASurvivalWaveCharacter::PickupWeapon(TSubclassOf<class ATestWeapon> WhatWeapon) {
-
+	
 }
 
 void ASurvivalWaveCharacter::ChangeFOV(float new_fov) {

@@ -84,11 +84,14 @@ public:
 	void UpdateAnimRun();
 
 	//Blueprint event to pass Aim Animation variables
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Anim")
 	void UpdateAnimAim();
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Anim")
 	void UpdateAnimFire();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Anim")
+	void UpdateAnimSwitch();
 
 	void EnableRun();
 	void DisableRun();
@@ -99,13 +102,28 @@ public:
 	void EnableFire();
 	void DisableFire();
 
+	void PreviousGunPress();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Pickup")
+	void SwitchGunBP();
+
+	UFUNCTION(BlueprintCallable, Category = "Pickup")
+	void SwitchGun(int32 ind);
+
 	UFUNCTION(BlueprintCallable, Category = "Pickup")
 	void PickupWeapon(TSubclassOf<class ATestWeapon> WhatWeapon);
 
+	//UFUNCTION(BlueprintCallable, Category = "Pickup")
+	//void SetWeapon(int32 ind, ATestWeapon Weap) { Weapon[ind] = *Weap; }
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	class ATestWeapon* Weapon1;
+	TArray<ATestWeapon*> Weapon;
 	//TSubclassOf<class ATestWeapon> Weapon1;
-	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	int32 weapon_select;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
+	bool switching;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
 	bool firing;
