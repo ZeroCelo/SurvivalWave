@@ -52,9 +52,13 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	speed_run = 600.0f;
 	speed_normal = 250.0f;
 	fov_normal = 90.0f;
+	cam_normal = CameraBoom->SocketOffset;
 	fov_aim = 60.0f;
+	cam_aim = cam_normal;
 	fov_run = 120.0f;
-	fov_check = 90.0f;
+	cam_run = cam_normal;
+	cam_check = CameraBoom->SocketOffset;
+	fov_check = fov_normal;
 	fov_max_time = 1.0f;
 	fov_elapsed = fov_max_time;
 	life_max = 100.0f;
@@ -179,6 +183,7 @@ void ASurvivalWaveCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateFOV(DeltaTime);
+	UpdateCamPos(DeltaTime);
 }
 
 void ASurvivalWaveCharacter::EnableRun() {
@@ -208,7 +213,7 @@ void ASurvivalWaveCharacter::DisableRun() {
 }
 
 void ASurvivalWaveCharacter::EnableAim() {
-	if (!switching) {
+	//if (!switching) {
 		aiming = true;
 		running = false;
 		GetCharacterMovement()->MaxWalkSpeed = speed_normal;
@@ -218,7 +223,7 @@ void ASurvivalWaveCharacter::EnableAim() {
 		UpdateAnimAim();
 		UpdateAnimRun();
 		CheckFOV();
-	}
+	//}
 }
 
 void ASurvivalWaveCharacter::DisableAim() {
@@ -257,9 +262,8 @@ void ASurvivalWaveCharacter::SwitchGun(int32 ind) {
 void ASurvivalWaveCharacter::PreviousGunPress() {
 	switching = true;
 	DisableFire();
-	DisableAim();
+	//DisableAim();
 	DisableRun();
-	DisableFire();
 	UpdateAnimSwitch();
 }
 
@@ -273,28 +277,46 @@ void ASurvivalWaveCharacter::ChangeFOV(float new_fov) {
 	//GetWorld()->GetTimerManager().SetTimer(fov_timer, this, &ASurvivalWaveCharacter::UpdateFOV, 1.0f / fov_cnt_max, true);
 }
 
+void ASurvivalWaveCharacter::ChangeCamPos(FVector new_pos) {
+	cam_check = new_pos;
+}
+
 void ASurvivalWaveCharacter::CheckFOV() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Vel %f,%f,%f"), GetVelocity().X,GetVelocity().Y, GetVelocity().Z));
 	//float cur_speed = FVector::DotProduct(vel_temp, GetActorRotation().Vector());
 	
 	if (aiming && !running) {
 		ChangeFOV(fov_aim);
+		ChangeCamPos(cam_aim);
 	}
 	else if (!aiming && running) {
 			ChangeFOV(fov_run);
+			ChangeCamPos(cam_run);
 	}
 	else if (aiming && running) {
 		if (GetCharacterMovement()->MaxWalkSpeed == speed_run) {
 			//if(cur_speed > 10.0f)
 				ChangeFOV(fov_run);
+				ChangeCamPos(cam_run);
 		}
 		else {
 			ChangeFOV(fov_aim);
+			ChangeCamPos(cam_aim);
 		}
 		
 	}
 	else {
 		ChangeFOV(fov_normal);
+		ChangeCamPos(cam_normal);
+	}
+}
+
+void ASurvivalWaveCharacter::UpdateCamPos(float DeltaTime) {
+	if (fov_elapsed < fov_max_time) {
+		FVector part = cam_check - CameraBoom->SocketOffset;
+		part /= fov_max_time;
+		float remain = fov_elapsed / fov_max_time;
+		CameraBoom->SocketOffset += remain*part;
 	}
 }
 

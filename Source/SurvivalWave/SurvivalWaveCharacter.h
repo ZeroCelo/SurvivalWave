@@ -78,6 +78,8 @@ public:
 	void ChangeFOV(float new_fov);
 	void UpdateFOV(float DeltaTime);
 	void CheckFOV();
+	void ChangeCamPos(FVector new_pos);
+	void UpdateCamPos(float Deltatime);
 
 	//Blueprint event to pass Run Animation variables
 	UFUNCTION(BlueprintImplementableEvent)
@@ -87,9 +89,11 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Anim")
 	void UpdateAnimAim();
 
+	//Blueprint event to pass Fire Animation variables
 	UFUNCTION(BlueprintImplementableEvent, Category = "Anim")
 	void UpdateAnimFire();
 
+	//Blueprint event to pass Weapon Switch Animation variables
 	UFUNCTION(BlueprintImplementableEvent, Category = "Anim")
 	void UpdateAnimSwitch();
 
@@ -116,13 +120,15 @@ public:
 	//UFUNCTION(BlueprintCallable, Category = "Pickup")
 	//void SetWeapon(int32 ind, ATestWeapon Weap) { Weapon[ind] = *Weap; }
 
+	//Array of weapons that was pickup, null in case nothing was picked up, ToDo: 3rd is the infinite ammo weapon. 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TArray<ATestWeapon*> Weapon;
 	//TSubclassOf<class ATestWeapon> Weapon1;
+	//Selected Weapon Index
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	int32 weapon_select;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool switching;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
@@ -149,10 +155,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
 	float fov_run;
 
-	//Maximum time in seconds for the fov change animation
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
+	FVector cam_normal;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
+	FVector cam_aim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
+	FVector cam_run;
+
+	//Maximum time in seconds for the Camera FOV/POS change animation
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
 	float fov_max_time;
 
+	FVector cam_check;
 	float fov_check;
 	float fov_elapsed;
 	

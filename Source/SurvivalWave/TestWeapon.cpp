@@ -83,7 +83,7 @@ void ATestWeapon::Shoot() {
 		SimulateFire();
 	}
 	GetWorld()->GetTimerManager().SetTimer(FireTimer, this, &ATestWeapon::Shoot, last_fire + damage_rate - game_time, false);
-	GetWorld()->GetTimerManager().SetTimer(MuzzleTimer, this, &ATestWeapon::SimulateFireStop, 0.1f, false);
+	GetWorld()->GetTimerManager().SetTimer(MuzzleTimer, this, &ATestWeapon::SimulateFireStop, 0.075f, false);
 }
 
 void ATestWeapon::StartFire() {
