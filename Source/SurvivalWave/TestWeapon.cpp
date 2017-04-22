@@ -30,6 +30,7 @@ ATestWeapon::ATestWeapon()
 	//damage_ammo_total = damage_ammo_cap*2.0f;
 	trace_debug = false;
 	last_fire = 0.0f;
+	muzzle_time = 0.1115f;
 }
 
 // Called when the game starts or when spawned
@@ -49,8 +50,8 @@ void ATestWeapon::Tick(float DeltaTime)
 void ATestWeapon::Shoot() {
 	float game_time = GetWorld()->GetTimeSeconds();
 	float dif_time = game_time - last_fire;
-	if (dif_time >= damage_rate || last_fire == 0.0f) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Shoot")));
+	if (dif_time >= damage_rate) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Shoot")));
 		FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
 		RV_TraceParams.bTraceComplex = true;
 		RV_TraceParams.bTraceAsyncScene = true;
@@ -83,7 +84,7 @@ void ATestWeapon::Shoot() {
 		SimulateFire();
 	}
 	GetWorld()->GetTimerManager().SetTimer(FireTimer, this, &ATestWeapon::Shoot, last_fire + damage_rate - game_time, false);
-	GetWorld()->GetTimerManager().SetTimer(MuzzleTimer, this, &ATestWeapon::SimulateFireStop, 0.075f, false);
+	GetWorld()->GetTimerManager().SetTimer(MuzzleTimer, this, &ATestWeapon::SimulateFireStop, muzzle_time, false);
 }
 
 void ATestWeapon::StartFire() {

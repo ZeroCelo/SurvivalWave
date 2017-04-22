@@ -15,11 +15,6 @@ ASurvivalWaveGameMode::ASurvivalWaveGameMode()
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
 
-	//Setup the HUD
-	if (GameHUDClass != nullptr) {
-		gameHUD = CreateWidget<UUserWidget>(GetWorld(), GameHUDClass);
-		if (gameHUD != nullptr) gameHUD->AddToViewport();
-	}
 }
 
 void ASurvivalWaveGameMode::BeginPlay(){

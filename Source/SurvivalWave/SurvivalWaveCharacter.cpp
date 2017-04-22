@@ -4,6 +4,8 @@
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
 #include "SurvivalWaveCharacter.h"
 #include "TestWeapon.h"
+#include "Runtime/UMG/Public/UMG.h"
+#include "Blueprint/UserWidget.h"
 
 //#include "EngineGlobals.h"
 #include "Engine.h"
@@ -45,14 +47,19 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 	
+	run_forward = 0.0f;
+	run_press = false;
 	running = false;
 	aiming = false;
 	firing = false;
 	switching = false;
+	inventory = false;
 	speed_run = 600.0f;
 	speed_normal = 250.0f;
 	fov_normal = 90.0f;
 	cam_normal = CameraBoom->SocketOffset;
+	fov_inventory = 90.0f;
+	cam_inventory = cam_normal;
 	fov_aim = 60.0f;
 	cam_aim = cam_normal;
 	fov_run = 120.0f;
@@ -60,13 +67,14 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	cam_check = CameraBoom->SocketOffset;
 	fov_check = fov_normal;
 	fov_max_time = 1.0f;
-	fov_elapsed = fov_max_time;
+	fov_elapsed = 100.0f;
 	life_max = 100.0f;
 	life = life_max;
 	weapon_select = 1;
 	Weapon.Add(nullptr);
 	Weapon.Add(nullptr);
 	Weapon.Add(nullptr);
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -104,7 +112,7 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASurvivalWaveCharacter::EnableFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASurvivalWaveCharacter::DisableFire);
 	PlayerInputComponent->BindAction("PreviousGun", IE_Pressed, this, &ASurvivalWaveCharacter::PreviousGunPress);
-	//PlayerInputComponent->BindAction("PreviousGun", IE_Released, this, &ASurvivalWaveCharacter::DisableFire);
+	PlayerInputComponent->BindAction("Inventory", IE_Pressed, this, &ASurvivalWaveCharacter::InventoryPress);
 }
 
 
@@ -145,14 +153,24 @@ void ASurvivalWaveCharacter::MoveForward(float Value)
 
 		// get forward vector
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire DirForward %f,%f,%f"), Direction.X,Direction.Y,Direction.Z));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire DirForward %f,%f,%f (%f)"), Direction.X,Direction.Y,Direction.Z,Value));
+
+		if (Value <= 0.0f) {
+			run_forward = 0.0f;
+		}
+
 		if (!running) {
 			AddMovementInput(Direction, Value);
+			if (run_press && Value > 0.0f) {
+				run_forward = Value;
+				//EnableRun();
+			}
 		}
 		else {
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("DirForward %f"), Value));
-			if(Value >= 0.9f)
+			if (Value >= 0.9f) {
 				AddMovementInput(Direction, Value);
+			}
 		}
 	}
 }
@@ -168,30 +186,55 @@ void ASurvivalWaveCharacter::MoveRight(float Value)
 		// get right vector 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire DirRight %f,%f,%f"), Direction.X, Direction.Y, Direction.Z));
-		if(!running)
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire DirRight %f,%f,%f (%f)"), Direction.X, Direction.Y, Direction.Z,Value));
+		if (!running)
 			AddMovementInput(Direction, Value);
+		else
+			TurnAtRate(Value);
 	}
 }
 
 void ASurvivalWaveCharacter::BeginPlay() {
 	Super::BeginPlay();
-	//DisableRun();
+	//Setup the Inventory Widget
+	if (InventoryClass != nullptr) {
+		inventory_widget = CreateWidget<UUserWidget>(GetWorld(), InventoryClass);
+		
+		//if (gameHUD != nullptr) gameHUD->AddToViewport();
+	}
 }
 
 void ASurvivalWaveCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	UpdateFOV(DeltaTime);
-	UpdateCamPos(DeltaTime);
+	UpdateCam(DeltaTime);
+	//UpdateFOV(DeltaTime);
+	//UpdateCamPos(DeltaTime);
+}
+
+bool ASurvivalWaveCharacter::CanRun() {
+	return (!switching && !inventory && run_forward > 0.90f);
+}
+
+bool ASurvivalWaveCharacter::CanAim() {
+	return !inventory;
+}
+
+bool ASurvivalWaveCharacter::CanFire() {
+	return (!switching && !inventory);
+}
+
+bool ASurvivalWaveCharacter::CanInventory() {
+	return (!firing && !aiming && !running);
 }
 
 void ASurvivalWaveCharacter::EnableRun() {
-	if (!switching) {
+	run_press = true;
+	if (CanRun()) {
 		DisableFire();
 		running = true;
 		aiming = false;
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
 		GetCharacterMovement()->MaxWalkSpeed = speed_run;
 		//FollowCamera->FieldOfView = fov_normal;
 		//float cur_speed = FVector::DotProduct(GetVelocity(), GetActorRotation().Vector());
@@ -199,21 +242,24 @@ void ASurvivalWaveCharacter::EnableRun() {
 		//FollowCamera->FieldOfView = fov_run;
 		UpdateAnimRun();
 		UpdateAnimAim();
-		CheckFOV();
+		//CheckFOV();
+		CheckCam();
 	}
 }
 
 void ASurvivalWaveCharacter::DisableRun() {
+	run_press = false;
 	running = false;
 	GetCharacterMovement()->MaxWalkSpeed = speed_normal;
 	//FollowCamera->FieldOfView = fov_normal;
 	//if(!aiming)ChangeFOV(fov_normal);
 	UpdateAnimRun();
-	CheckFOV();
+	//CheckFOV();
+	CheckCam();
 }
 
 void ASurvivalWaveCharacter::EnableAim() {
-	//if (!switching) {
+	if (CanAim()) {
 		aiming = true;
 		running = false;
 		GetCharacterMovement()->MaxWalkSpeed = speed_normal;
@@ -222,8 +268,9 @@ void ASurvivalWaveCharacter::EnableAim() {
 
 		UpdateAnimAim();
 		UpdateAnimRun();
-		CheckFOV();
-	//}
+		//CheckFOV();
+		CheckCam();
+	}
 }
 
 void ASurvivalWaveCharacter::DisableAim() {
@@ -231,11 +278,12 @@ void ASurvivalWaveCharacter::DisableAim() {
 	//FollowCamera->FieldOfView = fov_normal;
 	//if(!running)ChangeFOV(fov_normal);
 	UpdateAnimAim();
-	CheckFOV();
+	// CheckFOV();
+	CheckCam();
 }
 
 void ASurvivalWaveCharacter::EnableFire() {
-	if (!switching) {
+	if (CanFire()) {
 		DisableRun();
 		firing = true;
 		if (Weapon[weapon_select] != nullptr)
@@ -259,6 +307,14 @@ void ASurvivalWaveCharacter::SwitchGun(int32 ind) {
 	SwitchGunBP();
 }
 
+void ASurvivalWaveCharacter::InventoryPress() {
+	if (CanInventory()) {
+		inventory = !inventory;
+		CheckCam();
+		InventoryPressBP();
+	}
+}
+
 void ASurvivalWaveCharacter::PreviousGunPress() {
 	switching = true;
 	DisableFire();
@@ -271,63 +327,49 @@ void ASurvivalWaveCharacter::PickupWeapon(TSubclassOf<class ATestWeapon> WhatWea
 	
 }
 
-void ASurvivalWaveCharacter::ChangeFOV(float new_fov) {
+void ASurvivalWaveCharacter::ChangeCam(FVector new_pos, float new_fov) {
 	fov_check = new_fov;
+	cam_check = new_pos;
 	fov_elapsed = 0.0f;
 	//GetWorld()->GetTimerManager().SetTimer(fov_timer, this, &ASurvivalWaveCharacter::UpdateFOV, 1.0f / fov_cnt_max, true);
 }
 
-void ASurvivalWaveCharacter::ChangeCamPos(FVector new_pos) {
-	cam_check = new_pos;
-}
-
-void ASurvivalWaveCharacter::CheckFOV() {
+void ASurvivalWaveCharacter::CheckCam() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Vel %f,%f,%f"), GetVelocity().X,GetVelocity().Y, GetVelocity().Z));
 	//float cur_speed = FVector::DotProduct(vel_temp, GetActorRotation().Vector());
-	
+
 	if (aiming && !running) {
-		ChangeFOV(fov_aim);
-		ChangeCamPos(cam_aim);
+		ChangeCam(cam_aim, fov_aim);
 	}
 	else if (!aiming && running) {
-			ChangeFOV(fov_run);
-			ChangeCamPos(cam_run);
+		ChangeCam(cam_run, fov_run);
 	}
 	else if (aiming && running) {
 		if (GetCharacterMovement()->MaxWalkSpeed == speed_run) {
-			//if(cur_speed > 10.0f)
-				ChangeFOV(fov_run);
-				ChangeCamPos(cam_run);
+			ChangeCam(cam_run, fov_run);
 		}
 		else {
-			ChangeFOV(fov_aim);
-			ChangeCamPos(cam_aim);
+			ChangeCam(cam_aim, fov_aim);
 		}
-		
+	}
+	else if (inventory) {
+		ChangeCam(cam_inventory, fov_inventory);
 	}
 	else {
-		ChangeFOV(fov_normal);
-		ChangeCamPos(cam_normal);
+		ChangeCam(cam_normal, fov_normal);
 	}
 }
 
-void ASurvivalWaveCharacter::UpdateCamPos(float DeltaTime) {
-	if (fov_elapsed < fov_max_time) {
-		FVector part = cam_check - CameraBoom->SocketOffset;
-		part /= fov_max_time;
-		float remain = fov_elapsed / fov_max_time;
-		CameraBoom->SocketOffset += remain*part;
-	}
-}
-
-void ASurvivalWaveCharacter::UpdateFOV(float DeltaTime) {
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("FOV %d"),fov_cnt));
-	//CheckFOV();
+void ASurvivalWaveCharacter::UpdateCam(float DeltaTime) {
 	if (fov_elapsed < fov_max_time) {
 		float part = fov_check - FollowCamera->FieldOfView;
+		FVector part2 = cam_check - CameraBoom->SocketOffset;
 		part /= fov_max_time;
+		part2 /= fov_max_time;
 		float remain = fov_elapsed / fov_max_time;
 		FollowCamera->FieldOfView += remain*part;
-		fov_elapsed += DeltaTime;
+		CameraBoom->SocketOffset += remain*part2;
+		fov_elapsed += DeltaTime;		
 	}
 }
+

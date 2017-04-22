@@ -75,11 +75,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Cam")
-	void ChangeFOV(float new_fov);
-	void UpdateFOV(float DeltaTime);
-	void CheckFOV();
-	void ChangeCamPos(FVector new_pos);
-	void UpdateCamPos(float Deltatime);
+	void UpdateCam(float DeltaTime);
+	UFUNCTION(BlueprintCallable, Category = "Cam")
+	void CheckCam();
+	UFUNCTION(BlueprintCallable, Category = "Cam")
+	void ChangeCam(FVector new_pos,float new_fov);
 
 	//Blueprint event to pass Run Animation variables
 	UFUNCTION(BlueprintImplementableEvent)
@@ -97,6 +97,18 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Anim")
 	void UpdateAnimSwitch();
 
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool CanRun();
+
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool CanAim();
+
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool CanFire();	
+
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool CanInventory();
+
 	void EnableRun();
 	void DisableRun();
 
@@ -107,6 +119,10 @@ public:
 	void DisableFire();
 
 	void PreviousGunPress();
+	void InventoryPress();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
+	void InventoryPressBP();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Pickup")
 	void SwitchGunBP();
@@ -116,10 +132,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Pickup")
 	void PickupWeapon(TSubclassOf<class ATestWeapon> WhatWeapon);
-
-	//UFUNCTION(BlueprintCallable, Category = "Pickup")
-	//void SetWeapon(int32 ind, ATestWeapon Weap) { Weapon[ind] = *Weap; }
-
+	
 	//Array of weapons that was pickup, null in case nothing was picked up, ToDo: 3rd is the infinite ammo weapon. 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TArray<ATestWeapon*> Weapon;
@@ -140,6 +153,9 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
 	bool aiming;
 
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
+	bool inventory;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
 	float speed_run;
 
@@ -156,6 +172,9 @@ public:
 	float fov_run;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
+	float fov_inventory;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
 	FVector cam_normal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
@@ -164,9 +183,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
 	FVector cam_run;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
+	FVector cam_inventory;
+
 	//Maximum time in seconds for the Camera FOV/POS change animation
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
 	float fov_max_time;
+
+	bool run_press;
+	float run_forward;
 
 	FVector cam_check;
 	float fov_check;
@@ -177,5 +202,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Life")
 	float life_max;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<class UUserWidget> InventoryClass;
+
+	UPROPERTY()
+	class UUserWidget* inventory_widget;
 };
 
