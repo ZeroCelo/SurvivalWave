@@ -79,6 +79,7 @@ DerivedDataCache/*
 Content/*
 !Content/Animations/
 !Content/Blueprints/
+!Content/Materials/
 !Content/Maps/
 !Content/DemoRoom/
 !Content/SFX/
