@@ -1,7 +1,8 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameFramework/Character.h"
-//#include "TestWeapon.h"
+//#include "ItemPickup.h"
+#include "InventoryWidget.h"
 
 #include "SurvivalWaveCharacter.generated.h"
 
@@ -74,27 +75,62 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	class USphereComponent* CollectSphere;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HUD")
+	TSubclassOf<class UUserWidget> ItemHUDClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
+	class UUserWidget* ItemHUDWidget;
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
+	void UpdateHUDItem();
+
+	//If there is an item and CanInteract = true, show item in the HUD
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void ShowHUDItem();
+
+	//Function to get selected pickup
+	UFUNCTION(BlueprintCallable)
+	FItem GetPickup();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TMap<int32, FItem> items;
+	TMap<int32, AItemPickup*> items_actor;
+
+	UFUNCTION(BlueprintCallable)
+	void PickupDetectionEnter(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	UFUNCTION(BlueprintCallable)
+	void PickupDetectionExit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	//Function to update the camera possition, called in the tick for animation effect
 	UFUNCTION(BlueprintCallable, Category = "Cam")
 	void UpdateCam(float DeltaTime);
+
+	//Event to check the player state(Aiming,running....) and update camera accordingly
 	UFUNCTION(BlueprintCallable, Category = "Cam")
 	void CheckCam();
+
+	//Function to update the camera position and field of view
 	UFUNCTION(BlueprintCallable, Category = "Cam")
 	void ChangeCam(FVector new_pos,float new_fov);
 
 	//Blueprint event to pass Run Animation variables
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Anim")
 	void UpdateAnimRun();
 
 	//Blueprint event to pass Aim Animation variables
-	UFUNCTION(BlueprintImplementableEvent, Category = "Anim")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Anim")
 	void UpdateAnimAim();
 
 	//Blueprint event to pass Fire Animation variables
-	UFUNCTION(BlueprintImplementableEvent, Category = "Anim")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Anim")
 	void UpdateAnimFire();
 
 	//Blueprint event to pass Weapon Switch Animation variables
-	UFUNCTION(BlueprintImplementableEvent, Category = "Anim")
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category = "Anim")
 	void UpdateAnimSwitch();
 
 	UFUNCTION(BlueprintCallable, Category = "Status")
@@ -109,6 +145,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool CanInventory();
 
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool CanInteract();
+
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool CanSwitch();
+	
 	void EnableRun();
 	void DisableRun();
 
@@ -120,11 +162,18 @@ public:
 
 	void PreviousGunPress();
 	void InventoryPress();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
+	void InteractPress();
+	
+	//Event to make Blueprint related things on this state context
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Inventory")
 	void InventoryPressBP();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Pickup")
+	//Event to make Blueprint related things on this state context
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Inventory")
+	void InteractPressBP();
+
+	//Event to make Blueprint related things on this state context
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Pickup")
 	void SwitchGunBP();
 
 	UFUNCTION(BlueprintCallable, Category = "Pickup")
@@ -141,20 +190,47 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	int32 weapon_select;
 
+	UFUNCTION(BlueprintCallable, Category = "Setter")
+	void SetSwitching(bool val) { bswitching = val; }
+
+	UFUNCTION(BlueprintCallable, Category = "Setter")
+	void SetFiring(bool val) { bfiring = val; }
+
+	UFUNCTION(BlueprintCallable, Category = "Setter")
+	void SetAiming(bool val) { baiming = val; }
+
+	UFUNCTION(BlueprintCallable, Category = "Setter")
+	void SetRunning(bool val) { brunning = val; }
+		
+	UFUNCTION(BlueprintCallable, Category = "Getter")
+	bool GetSwitching() { return bswitching; }
+
+	UFUNCTION(BlueprintCallable, Category = "Getter")
+	bool GetFiring() { return bfiring; }
+
+	UFUNCTION(BlueprintCallable, Category = "Getter")
+	bool GetRunning() { return brunning; }
+
+	UFUNCTION(BlueprintCallable, Category = "Getter")
+	bool GetAiming() { return baiming; }
+
+	UFUNCTION(BlueprintCallable, Category = "Getter")
+	bool GetInventory() { return binventory; }
+		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
-	bool switching;
+	bool bswitching;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
-	bool firing;
+	bool bfiring;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
-	bool running;
+	bool brunning;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
-	bool aiming;
+	bool baiming;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
-	bool inventory;
+	bool binventory;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
 	float speed_run;
@@ -190,7 +266,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
 	float fov_max_time;
 
-	bool run_press;
+	bool brun_press;
 	float run_forward;
 
 	FVector cam_check;
@@ -203,10 +279,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Life")
 	float life_max;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inventory")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HUD")
 	TSubclassOf<class UUserWidget> InventoryClass;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
 	class UUserWidget* inventory_widget;
 };
 

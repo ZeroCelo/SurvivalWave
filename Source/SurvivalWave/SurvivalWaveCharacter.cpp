@@ -44,16 +44,22 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	CollectSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollectionSphere"));
+	CollectSphere->SetupAttachment(RootComponent);
+	CollectSphere->SetSphereRadius(200.0f);
+	//CollectSphere->OnComponentBeginOverlap.AddDynamic(this, &ASurvivalWaveCharacter::PickupDetectionEnter);
+	CollectSphere->OnComponentEndOverlap.AddDynamic(this, &ASurvivalWaveCharacter::PickupDetectionExit);
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 	
 	run_forward = 0.0f;
-	run_press = false;
-	running = false;
-	aiming = false;
-	firing = false;
-	switching = false;
-	inventory = false;
+	brun_press = false;
+	brunning = false;
+	baiming = false;
+	bfiring = false;
+	bswitching = false;
+	binventory = false;
 	speed_run = 600.0f;
 	speed_normal = 250.0f;
 	fov_normal = 90.0f;
@@ -113,6 +119,7 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASurvivalWaveCharacter::DisableFire);
 	PlayerInputComponent->BindAction("PreviousGun", IE_Pressed, this, &ASurvivalWaveCharacter::PreviousGunPress);
 	PlayerInputComponent->BindAction("Inventory", IE_Pressed, this, &ASurvivalWaveCharacter::InventoryPress);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASurvivalWaveCharacter::InteractPress);
 }
 
 
@@ -159,9 +166,9 @@ void ASurvivalWaveCharacter::MoveForward(float Value)
 			run_forward = 0.0f;
 		}
 
-		if (!running) {
+		if (!brunning) {
 			AddMovementInput(Direction, Value);
-			if (run_press && Value > 0.0f) {
+			if (brun_press && Value > 0.0f) {
 				run_forward = Value;
 				//EnableRun();
 			}
@@ -177,7 +184,7 @@ void ASurvivalWaveCharacter::MoveForward(float Value)
 
 void ASurvivalWaveCharacter::MoveRight(float Value)
 {
-	if ( (Controller != NULL) && (Value != 0.0f) && !running)
+	if ( (Controller != NULL) && (Value != 0.0f) && !brunning)
 	{
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -187,7 +194,7 @@ void ASurvivalWaveCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire DirRight %f,%f,%f (%f)"), Direction.X, Direction.Y, Direction.Z,Value));
-		if (!running)
+		if (!brunning)
 			AddMovementInput(Direction, Value);
 		else
 			TurnAtRate(Value);
@@ -202,6 +209,9 @@ void ASurvivalWaveCharacter::BeginPlay() {
 		
 		//if (gameHUD != nullptr) gameHUD->AddToViewport();
 	}
+	if (ItemHUDClass != nullptr) {
+		ItemHUDWidget = CreateWidget<UUserWidget>(GetWorld(), ItemHUDClass);
+	}
 }
 
 void ASurvivalWaveCharacter::Tick(float DeltaTime)
@@ -213,27 +223,35 @@ void ASurvivalWaveCharacter::Tick(float DeltaTime)
 }
 
 bool ASurvivalWaveCharacter::CanRun() {
-	return (!switching && !inventory && run_forward > 0.90f);
+	return (!bswitching && !binventory && run_forward > 0.90f);
 }
 
 bool ASurvivalWaveCharacter::CanAim() {
-	return !inventory;
+	return !binventory;
 }
 
 bool ASurvivalWaveCharacter::CanFire() {
-	return (!switching && !inventory);
+	return (!bswitching && !binventory);
 }
 
 bool ASurvivalWaveCharacter::CanInventory() {
-	return (!firing && !aiming && !running);
+	return (!bfiring && !baiming && !brunning);
+}
+
+bool ASurvivalWaveCharacter::CanInteract() {
+	return (!binventory);
+}
+
+bool ASurvivalWaveCharacter::CanSwitch() {
+	return (!bswitching);
 }
 
 void ASurvivalWaveCharacter::EnableRun() {
-	run_press = true;
+	brun_press = true;
 	if (CanRun()) {
 		DisableFire();
-		running = true;
-		aiming = false;
+		brunning = true;
+		baiming = false;
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
 		GetCharacterMovement()->MaxWalkSpeed = speed_run;
 		//FollowCamera->FieldOfView = fov_normal;
@@ -248,8 +266,8 @@ void ASurvivalWaveCharacter::EnableRun() {
 }
 
 void ASurvivalWaveCharacter::DisableRun() {
-	run_press = false;
-	running = false;
+	brun_press = false;
+	brunning = false;
 	GetCharacterMovement()->MaxWalkSpeed = speed_normal;
 	//FollowCamera->FieldOfView = fov_normal;
 	//if(!aiming)ChangeFOV(fov_normal);
@@ -260,8 +278,8 @@ void ASurvivalWaveCharacter::DisableRun() {
 
 void ASurvivalWaveCharacter::EnableAim() {
 	if (CanAim()) {
-		aiming = true;
-		running = false;
+		baiming = true;
+		brunning = false;
 		GetCharacterMovement()->MaxWalkSpeed = speed_normal;
 		//FollowCamera->FieldOfView = fov_aim;
 		//ChangeFOV(fov_aim);
@@ -274,7 +292,7 @@ void ASurvivalWaveCharacter::EnableAim() {
 }
 
 void ASurvivalWaveCharacter::DisableAim() {
-	aiming = false;
+	baiming = false;
 	//FollowCamera->FieldOfView = fov_normal;
 	//if(!running)ChangeFOV(fov_normal);
 	UpdateAnimAim();
@@ -285,7 +303,7 @@ void ASurvivalWaveCharacter::DisableAim() {
 void ASurvivalWaveCharacter::EnableFire() {
 	if (CanFire()) {
 		DisableRun();
-		firing = true;
+		bfiring = true;
 		if (Weapon[weapon_select] != nullptr)
 			Weapon[weapon_select]->StartFire();
 		UpdateAnimFire();
@@ -294,7 +312,7 @@ void ASurvivalWaveCharacter::EnableFire() {
 }
 
 void ASurvivalWaveCharacter::DisableFire() {
-	firing = false;
+	bfiring = false;
 	if (Weapon[weapon_select] != nullptr)
 		Weapon[weapon_select]->StopFire();
 	UpdateAnimFire();
@@ -309,18 +327,53 @@ void ASurvivalWaveCharacter::SwitchGun(int32 ind) {
 
 void ASurvivalWaveCharacter::InventoryPress() {
 	if (CanInventory()) {
-		inventory = !inventory;
+		binventory = !binventory;
 		CheckCam();
+		UpdateHUDItem();
+		ShowHUDItem();
 		InventoryPressBP();
 	}
 }
 
+void ASurvivalWaveCharacter::InteractPress() {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Interact")));
+	if (CanInteract()) {
+
+		if (items.Num()) {	//Have item to pickup
+			FItem it = items.CreateConstIterator()->Value;
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Item id%d quant%d limit%d type:%s"), it.id,it.quantity, it.limit, *FItem::GetItemEnumAsString(it.type)));
+			UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
+			if (itemUI != nullptr) {
+				int32 consume = itemUI->AddItem(it);
+				AItemPickup* temp = items_actor.Find(it.id)[0];
+				if (consume > 0) {
+					if (temp != nullptr) {
+						temp->ItemStat.quantity = consume;
+						items[it.id].quantity = consume;
+					}
+				}
+				else {
+					if (temp != nullptr) {
+						items.Remove(it.id);
+						items_actor.Remove(it.id);
+						temp->WasCollected();
+					}
+				}
+			}
+		}
+		InteractPressBP();
+	}
+}
+
 void ASurvivalWaveCharacter::PreviousGunPress() {
-	switching = true;
-	DisableFire();
-	//DisableAim();
-	DisableRun();
-	UpdateAnimSwitch();
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("SwitchGun")));
+	if (CanSwitch()) {
+		bswitching = true;
+		DisableFire();
+		//DisableAim();
+		DisableRun();
+		UpdateAnimSwitch();
+	}
 }
 
 void ASurvivalWaveCharacter::PickupWeapon(TSubclassOf<class ATestWeapon> WhatWeapon) {
@@ -338,13 +391,13 @@ void ASurvivalWaveCharacter::CheckCam() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Vel %f,%f,%f"), GetVelocity().X,GetVelocity().Y, GetVelocity().Z));
 	//float cur_speed = FVector::DotProduct(vel_temp, GetActorRotation().Vector());
 
-	if (aiming && !running) {
+	if (baiming && !brunning) {
 		ChangeCam(cam_aim, fov_aim);
 	}
-	else if (!aiming && running) {
+	else if (!baiming && brunning) {
 		ChangeCam(cam_run, fov_run);
 	}
-	else if (aiming && running) {
+	else if (baiming && brunning) {
 		if (GetCharacterMovement()->MaxWalkSpeed == speed_run) {
 			ChangeCam(cam_run, fov_run);
 		}
@@ -352,7 +405,7 @@ void ASurvivalWaveCharacter::CheckCam() {
 			ChangeCam(cam_aim, fov_aim);
 		}
 	}
-	else if (inventory) {
+	else if (binventory) {
 		ChangeCam(cam_inventory, fov_inventory);
 	}
 	else {
@@ -373,3 +426,69 @@ void ASurvivalWaveCharacter::UpdateCam(float DeltaTime) {
 	}
 }
 
+void ASurvivalWaveCharacter::ShowHUDItem() {
+	if (items.Num() && CanInteract()) {
+		if (ItemHUDWidget != nullptr) {
+			if (!ItemHUDWidget->IsInViewport())ItemHUDWidget->AddToViewport();
+		}
+	}
+	else {
+		if (ItemHUDWidget != nullptr) {
+			if (ItemHUDWidget->IsInViewport())ItemHUDWidget->RemoveFromViewport();
+		}
+	}
+}
+
+void ASurvivalWaveCharacter::PickupDetectionEnter(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Vel %f,%f,%f"), GetVelocity().X, GetVelocity().Y, GetVelocity().Z));
+	
+	FString str("None");
+	AItemPickup* item = Cast<AItemPickup>(OtherActor);
+	if (item != nullptr) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Detect id%d quant%d limit%d type:%s"), item->ItemStat.id, item->ItemStat.quantity, item->ItemStat.limit, *FItem::GetItemEnumAsString(item->ItemStat.type)));
+		str = item->ItemStat.GetNameID();
+		int32 item_id = item->ItemStat.GetID();
+		if (!items.Contains(item_id)) {
+			items.Add(item_id, item->ItemStat);
+			items_actor.Add(item_id,item);
+		}
+	}
+	//if (items.Num() > 0 && CanInteract()) {
+	UpdateHUDItem();
+	ShowHUDItem();
+	//}
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Pickup Enter %s"),*str));
+	
+}
+
+void ASurvivalWaveCharacter::PickupDetectionExit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Vel %f,%f,%f"), GetVelocity().X, GetVelocity().Y, GetVelocity().Z));
+	FString str("None");
+	AItemPickup* item = Cast<AItemPickup>(OtherActor);
+	if (item != nullptr) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Detect id%d quant%d limit%d type:%s"), item->ItemStat.id, item->ItemStat.quantity, item->ItemStat.limit, *FItem::GetItemEnumAsString(item->ItemStat.type)));
+		str = item->ItemStat.GetNameID();
+		int32 item_id = item->ItemStat.GetID();
+		if (items.Contains(item_id)) {
+			items.Remove(item_id);
+			items_actor.Remove(item_id);
+		}
+	}
+	//if( CanInteract()) 
+	UpdateHUDItem();
+	ShowHUDItem();
+	
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Pickup Exit %s"), *str));
+
+	//uint32 act_address = (uint32)(OtherActor);
+}
+
+FItem ASurvivalWaveCharacter::GetPickup() {
+	if (items.Num()) {
+		return items.CreateConstIterator()->Value;
+	}
+	FItem ret; ret.quantity = -1;
+	return ret;
+}
