@@ -57,7 +57,7 @@ public:
 
 	float last_fire;
 
-	//Time in seconds for the muzzle stop spawning
+	//Time in seconds for the muzzle Effects to stop spawning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	float muzzle_time;
 

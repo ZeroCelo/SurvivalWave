@@ -43,7 +43,7 @@ UInventoryWidget::UInventoryWidget(const FObjectInitializer& init):Super(init) {
 }*/
 
 TSharedRef<SWidget> UInventoryWidget::RebuildWidget() {
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, "Rebuild!");
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, "Rebuild!");
 	TSharedRef<SWidget> Widget = Super::RebuildWidget();
 	/*
 	if (grid_panel == nullptr) {
@@ -55,12 +55,8 @@ TSharedRef<SWidget> UInventoryWidget::RebuildWidget() {
 	return Widget;
 }
 
-void UInventoryWidget::ClickItem_Implementation(int32 index) {
-
-}
-
 void UInventoryWidget::NativeConstruct() {
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, "NativeConstruct");
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, "NativeConstruct");
 	int32 tot = items_w*items_h;
 	
 	if (grid_panel == nullptr) {

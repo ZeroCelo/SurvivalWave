@@ -46,11 +46,7 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Data")
 	void RefreshItem(int32 index);
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Data")
-	void ClickItem(int32 index);
-	virtual void ClickItem_Implementation(int32 index);
-
+		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Data")
 	int32 items_index_free;
 

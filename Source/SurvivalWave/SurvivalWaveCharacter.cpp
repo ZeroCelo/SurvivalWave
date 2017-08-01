@@ -50,6 +50,10 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	//CollectSphere->OnComponentBeginOverlap.AddDynamic(this, &ASurvivalWaveCharacter::PickupDetectionEnter);
 	CollectSphere->OnComponentEndOverlap.AddDynamic(this, &ASurvivalWaveCharacter::PickupDetectionExit);
 
+	LifeStats = CreateDefaultSubobject<ULifeStat>(TEXT("LifeComponent"));
+	this->AddOwnedComponent(LifeStats);
+	//LifeStats->SetupAttachment(RootComponent);
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 	
@@ -74,9 +78,8 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	fov_check = fov_normal;
 	fov_max_time = 1.0f;
 	fov_elapsed = 100.0f;
-	life_max = 100.0f;
-	life = life_max;
-	weapon_select = 1;
+	weapon_select = 0;
+	//weapon_select_new = 0;
 	Weapon.Add(nullptr);
 	Weapon.Add(nullptr);
 	Weapon.Add(nullptr);
@@ -118,10 +121,10 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASurvivalWaveCharacter::EnableFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASurvivalWaveCharacter::DisableFire);
 	PlayerInputComponent->BindAction("PreviousGun", IE_Pressed, this, &ASurvivalWaveCharacter::PreviousGunPress);
+	PlayerInputComponent->BindAction("NextGun", IE_Pressed, this, &ASurvivalWaveCharacter::NextGunPress);
 	PlayerInputComponent->BindAction("Inventory", IE_Pressed, this, &ASurvivalWaveCharacter::InventoryPress);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASurvivalWaveCharacter::InteractPress);
 }
-
 
 void ASurvivalWaveCharacter::OnResetVR()
 {
@@ -206,12 +209,40 @@ void ASurvivalWaveCharacter::BeginPlay() {
 	//Setup the Inventory Widget
 	if (InventoryClass != nullptr) {
 		inventory_widget = CreateWidget<UUserWidget>(GetWorld(), InventoryClass);
-		
+		if (inventory_widget != nullptr) {
+			inventory_widget->AddToViewport();
+			inventory_widget->RemoveFromParent();
+		}
 		//if (gameHUD != nullptr) gameHUD->AddToViewport();
 	}
+	//Setup Item Interaction widget
 	if (ItemHUDClass != nullptr) {
 		ItemHUDWidget = CreateWidget<UUserWidget>(GetWorld(), ItemHUDClass);
 	}
+	//Setup Life Component widget
+	if (LifeHUDClass != nullptr) {
+		LifeHUDWidget = CreateWidget<UUserWidget>(GetWorld(), LifeHUDClass);
+		if (LifeHUDWidget != nullptr) {
+			LifeHUDWidget->AddToViewport();
+			UpdateHUDLife();
+		}
+	}
+	for (int32 i = 0; i < Weapon_Class.Num() && i < Weapon.Num(); i++) {
+		if (Weapon_Class[i] != nullptr) {
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = Instigator;
+			
+
+			//Get a random location to spawn at
+			FVector SpawnLocation = RootComponent->GetComponentLocation();
+
+			//get a random rotation for the spawned item
+			FRotator SpawnRotation = RootComponent->GetComponentRotation();
+			Weapon[i] = GetWorld()->SpawnActor<AWeapon>(Weapon_Class[i]);
+		}
+	}
+	SetupWeaponBP();
 }
 
 void ASurvivalWaveCharacter::Tick(float DeltaTime)
@@ -319,10 +350,42 @@ void ASurvivalWaveCharacter::DisableFire() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("UnFire")));
 }
 
-void ASurvivalWaveCharacter::SwitchGun(int32 ind) {
-	weapon_select = weapon_select % 2;
-	weapon_select++;
+void ASurvivalWaveCharacter::SwitchGun() {
+	int32 temp = weapon_select;
+	weapon_select = weapon_select_next;
+	weapon_select_next = temp;
 	SwitchGunBP();
+}
+
+void ASurvivalWaveCharacter::NextGunPress() {
+	if (CanSwitch()) {
+		weapon_select_next = weapon_select + 1;
+		if (weapon_select_next >= Weapon_Class.Num())weapon_select_next = 0;
+		if (Weapon_Class[weapon_select_next] != nullptr) {
+			bswitching = true;
+			DisableFire();
+			//DisableAim();
+			DisableRun();
+
+			UpdateAnimSwitch();
+		}
+	}
+}
+
+void ASurvivalWaveCharacter::PreviousGunPress() {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("PreviousGun %d Num %d"), weapon_select, weapon_select_next));
+	if (CanSwitch()) {
+		weapon_select_next = weapon_select - 1;
+		if (weapon_select_next < 0)weapon_select_next = Weapon_Class.Num() - 1;
+		if (Weapon_Class[weapon_select_next] != nullptr) {
+			bswitching = true;
+			DisableFire();
+			//DisableAim();
+			DisableRun();
+
+			UpdateAnimSwitch();
+		}
+	}
 }
 
 void ASurvivalWaveCharacter::InventoryPress() {
@@ -362,17 +425,6 @@ void ASurvivalWaveCharacter::InteractPress() {
 			}
 		}
 		InteractPressBP();
-	}
-}
-
-void ASurvivalWaveCharacter::PreviousGunPress() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("SwitchGun")));
-	if (CanSwitch()) {
-		bswitching = true;
-		DisableFire();
-		//DisableAim();
-		DisableRun();
-		UpdateAnimSwitch();
 	}
 }
 
@@ -491,4 +543,13 @@ FItem ASurvivalWaveCharacter::GetPickup() {
 	}
 	FItem ret; ret.quantity = -1;
 	return ret;
+}
+
+void ASurvivalWaveCharacter::CheckDamage(AProjectile* Gun) {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Check Damage")));
+	if (Gun != nullptr) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Oh No!")));
+		LifeStats->TakeDamage(Gun->Damage);
+		UpdateHUDLife();
+	}
 }

@@ -11,7 +11,9 @@ enum class EItemType : uint8
 	IT_LifeS	UMETA(DisplayName = "LifeS"),
 	IT_LifeM	UMETA(DisplayName = "LifeM"),
 	IT_LifeL	UMETA(DisplayName = "LifeL"),
-	IT_AmmoR	UMETA(DisplayName = "AmmoR")
+	IT_AmmoR	UMETA(DisplayName = "AmmoR"),
+	IT_GunR		UMETA(DisplayName = "GunR"),
+	IT_GunL		UMETA(DisplayName = "GunL")
 };
 
 //If you want this to appear in BP, make sure to use this instead

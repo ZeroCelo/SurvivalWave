@@ -3,6 +3,9 @@
 #include "GameFramework/Character.h"
 //#include "ItemPickup.h"
 #include "InventoryWidget.h"
+#include "Weapon_Instant.h"
+#include "LifeStat.h"
+#include "Projectile.h"
 
 #include "SurvivalWaveCharacter.generated.h"
 
@@ -83,7 +86,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
 	class UUserWidget* ItemHUDWidget;
-
+		
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
 	void UpdateHUDItem();
 
@@ -160,6 +163,7 @@ public:
 	void EnableFire();
 	void DisableFire();
 
+	void NextGunPress();
 	void PreviousGunPress();
 	void InventoryPress();
 	void InteractPress();
@@ -177,18 +181,29 @@ public:
 	void SwitchGunBP();
 
 	UFUNCTION(BlueprintCallable, Category = "Pickup")
-	void SwitchGun(int32 ind);
+	void SwitchGun();
 
 	UFUNCTION(BlueprintCallable, Category = "Pickup")
 	void PickupWeapon(TSubclassOf<class ATestWeapon> WhatWeapon);
+
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
+	void SetupWeaponBP();
 	
-	//Array of weapons that was pickup, null in case nothing was picked up, ToDo: 3rd is the infinite ammo weapon. 
+	//Array of weapons that was pickup, null in case nothing was picked up, ToDo: 1st is the infinite ammo weapon. 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	TArray<ATestWeapon*> Weapon;
-	//TSubclassOf<class ATestWeapon> Weapon1;
+	TArray<AWeapon*> Weapon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	TArray<TSubclassOf<class AWeapon> > Weapon_Class;
 	//Selected Weapon Index
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	int32 weapon_select;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	int32 weapon_select_next;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	//int32 weapon_select_new;
 
 	UFUNCTION(BlueprintCallable, Category = "Setter")
 	void SetSwitching(bool val) { bswitching = val; }
@@ -272,17 +287,26 @@ public:
 	FVector cam_check;
 	float fov_check;
 	float fov_elapsed;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Life")
-	float life;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Life")
-	float life_max;
-
+		
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HUD")
 	TSubclassOf<class UUserWidget> InventoryClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
 	class UUserWidget* inventory_widget;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HUD")
+	TSubclassOf<class UUserWidget> LifeHUDClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
+	class UUserWidget* LifeHUDWidget;
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
+	void UpdateHUDLife();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Life")
+	class ULifeStat* LifeStats;
+
+	UFUNCTION(BlueprintCallable)
+	void CheckDamage(AProjectile* Gun);
 };
 
