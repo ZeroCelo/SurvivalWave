@@ -124,6 +124,7 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("NextGun", IE_Pressed, this, &ASurvivalWaveCharacter::NextGunPress);
 	PlayerInputComponent->BindAction("Inventory", IE_Pressed, this, &ASurvivalWaveCharacter::InventoryPress);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASurvivalWaveCharacter::InteractPress);
+	PlayerInputComponent->BindAction("DropGun", IE_Pressed, this, &ASurvivalWaveCharacter::DropGunPress);
 }
 
 void ASurvivalWaveCharacter::OnResetVR()
@@ -227,8 +228,10 @@ void ASurvivalWaveCharacter::BeginPlay() {
 			UpdateHUDLife();
 		}
 	}
-	for (int32 i = 0; i < Weapon_Class.Num() && i < Weapon.Num(); i++) {
-		if (Weapon_Class[i] != nullptr) {
+	for (int32 i = 0; i < WeaponClassInit.Num() && (i - 1) < Weapon.Num(); i++) {
+	//if(Weapon_Class.Num() > 0){
+		if (WeaponClassInit[i] != nullptr) {
+		//if (Weapon_Class[0] != nullptr) {
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
 			SpawnParams.Instigator = Instigator;
@@ -239,7 +242,21 @@ void ASurvivalWaveCharacter::BeginPlay() {
 
 			//get a random rotation for the spawned item
 			FRotator SpawnRotation = RootComponent->GetComponentRotation();
-			Weapon[i] = GetWorld()->SpawnActor<AWeapon>(Weapon_Class[i]);
+			Weapon[i] = GetWorld()->SpawnActor<AWeapon>(WeaponClassInit[i]);
+			int32 weapon_i = i - 1;
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Setup Weapon UI try")));
+			if (inventory_widget != nullptr) {
+				UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
+				if (itemUI != nullptr) {
+					if (weapon_i < itemUI->Weapons.Num() && weapon_i >= 0) {
+						itemUI->Weapons[weapon_i].id = 1;
+						itemUI->Weapons[weapon_i].quantity = 1;
+						itemUI->Weapons[weapon_i].limit = 1;
+						itemUI->Weapons[weapon_i].type = Weapon[i]->WeaponType;
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Setup Weapon UI")));
+					}
+				}
+			}
 		}
 	}
 	SetupWeaponBP();
@@ -275,6 +292,10 @@ bool ASurvivalWaveCharacter::CanInteract() {
 
 bool ASurvivalWaveCharacter::CanSwitch() {
 	return (!bswitching);
+}
+
+bool ASurvivalWaveCharacter::CanDropGun() {
+	return (!brunning && !baiming);
 }
 
 void ASurvivalWaveCharacter::EnableRun() {
@@ -360,15 +381,20 @@ void ASurvivalWaveCharacter::SwitchGun() {
 void ASurvivalWaveCharacter::NextGunPress() {
 	if (CanSwitch()) {
 		weapon_select_next = weapon_select + 1;
-		if (weapon_select_next >= Weapon_Class.Num())weapon_select_next = 0;
-		if (Weapon_Class[weapon_select_next] != nullptr) {
-			bswitching = true;
-			DisableFire();
-			//DisableAim();
-			DisableRun();
+		do {
+			if (weapon_select_next >= Weapon.Num())weapon_select_next = 0;
+			if (Weapon[weapon_select_next] != nullptr) {
+				if (weapon_select_next == weapon_select) break;
+				bswitching = true;
+				DisableFire();
+				//DisableAim();
+				DisableRun();
 
-			UpdateAnimSwitch();
-		}
+				UpdateAnimSwitch();
+				break;
+			}
+			else weapon_select_next++;
+		} while (1);
 	}
 }
 
@@ -376,14 +402,32 @@ void ASurvivalWaveCharacter::PreviousGunPress() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("PreviousGun %d Num %d"), weapon_select, weapon_select_next));
 	if (CanSwitch()) {
 		weapon_select_next = weapon_select - 1;
-		if (weapon_select_next < 0)weapon_select_next = Weapon_Class.Num() - 1;
-		if (Weapon_Class[weapon_select_next] != nullptr) {
-			bswitching = true;
-			DisableFire();
-			//DisableAim();
-			DisableRun();
+		do {
+			if (weapon_select_next < 0)weapon_select_next = Weapon.Num() - 1;
+			if (Weapon[weapon_select_next] != nullptr) {
+				if (weapon_select_next == weapon_select) break;
+				bswitching = true;
+				DisableFire();
+				//DisableAim();
+				DisableRun();
 
-			UpdateAnimSwitch();
+				UpdateAnimSwitch();
+				break;
+			}
+			else weapon_select_next--;
+		} while (1);
+	}
+}
+
+void ASurvivalWaveCharacter::DropGunPress() {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("DropGun")));
+	if (CanDropGun()) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("DropGun Try")));
+		if (weapon_select > 0) {
+			Weapon[weapon_select]->Destroy();
+			Weapon[weapon_select] = nullptr;
+			NextGunPress();
+			DropGunPressBP();
 		}
 	}
 }
@@ -407,6 +451,24 @@ void ASurvivalWaveCharacter::InteractPress() {
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Item id%d quant%d limit%d type:%s"), it.id,it.quantity, it.limit, *FItem::GetItemEnumAsString(it.type)));
 			UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
 			if (itemUI != nullptr) {
+				FString str = FItem::GetItemEnumAsString(it.type);
+				bool bAddWeapon = false;
+				if (str.Contains("Gun")) {
+					for (int32 i = 0;i < Weapon.Num();i++) {
+						if (Weapon[i] == nullptr && WeaponMapClass.Contains(it.type)) {
+							Weapon[i] = GetWorld()->SpawnActor<AWeapon>(WeaponMapClass[it.type]);
+							/*if (Weapon[i] != nullptr) {
+								FAttachmentTransformRules trans(EAttachmentRule::SnapToTarget,true);
+								FString str("SockWeaponRifle");
+								str.AppendInt(i);
+								Weapon[i]->AttachToComponent(GetMesh(),trans,FName(*str));
+							}*/
+							bAddWeapon = true;
+							SetupWeaponIndexBP(i);
+							break;
+						}
+					}
+				}
 				int32 consume = itemUI->AddItem(it);
 				AItemPickup* temp = items_actor.Find(it.id)[0];
 				if (consume > 0) {
@@ -426,10 +488,6 @@ void ASurvivalWaveCharacter::InteractPress() {
 		}
 		InteractPressBP();
 	}
-}
-
-void ASurvivalWaveCharacter::PickupWeapon(TSubclassOf<class ATestWeapon> WhatWeapon) {
-	
 }
 
 void ASurvivalWaveCharacter::ChangeCam(FVector new_pos, float new_fov) {

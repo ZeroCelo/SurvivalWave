@@ -20,7 +20,7 @@ UInventoryWidget::UInventoryWidget(const FObjectInitializer& init):Super(init) {
 	items_h = 3;
 	items_width = 180.0;
 	items_height = 90.0;
-	
+	WeaponsNum = 2;
 }
 
 /*bool UInventoryWidget::Initialize() {
@@ -95,7 +95,7 @@ void UInventoryWidget::NativeConstruct() {
 					//}
 					APlayerController* PlayController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 					buttons.Add(CreateWidget<UUserWidget>(PlayController, ButtonClass));
-					UButton* but = Cast<UButton>(buttons[i]);
+					//UButton* but = Cast<UButton>(buttons[i]);
 					//if(but != nullptr)
 					//but->OnClicked.AddDynamic(this, &UInventoryWidget::ClickItem);
 
@@ -110,6 +110,44 @@ void UInventoryWidget::NativeConstruct() {
 		}
 	}
 
+	//Weapon Inventory setup
+	if (WeaponPanel == nullptr) {
+		WeaponPanel = WidgetTree->ConstructWidget<UUniformGridPanel>(UUniformGridPanel::StaticClass(), TEXT("WeaponGrid"));
+		WeaponPanel->SetMinDesiredSlotWidth(items_width);
+		WeaponPanel->SetMinDesiredSlotHeight(items_height);
+		WeaponPanel->SetSlotPadding(GridPad);
+	}
+
+	bool bweapon_change = false;
+	if (Weapons.Num() != WeaponsNum) {
+		Weapons.Empty();
+		Weapons.SetNum(WeaponsNum);
+		bweapon_change = true;
+	}
+
+	if (bweapon_change) {
+		WeaponButtons.Empty();
+		for (int32 i = 0; i < Weapons.Num(); i++) {
+			if (ButtonClass != nullptr) {
+				FString button_name("ButtonW");
+				button_name.AppendInt(i);
+				//buttons.Add(WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), TEXT("MyButtonName")));
+				//buttons.Add(WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), *button_name));
+				//}
+				APlayerController* PlayController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+				WeaponButtons.Add(CreateWidget<UUserWidget>(PlayController, ButtonClass));
+				//UButton* but = Cast<UButton>(buttons[i]);
+				//if(but != nullptr)
+				//but->OnClicked.AddDynamic(this, &UInventoryWidget::ClickItem);
+				WeaponPanel->AddChild(WeaponButtons[i]);
+				if (UUniformGridSlot* slot = Cast<UUniformGridSlot>(WeaponButtons[i]->Slot)) {
+					//slot->SetColumn(x);
+					slot->SetRow(i);
+				}
+			}
+		}
+	}
+
 	Super::NativeConstruct();	//Construct of UMG
 /*#if UE_BUILD_DEBUG
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Vel %f,%f,%f"), GetVelocity().X, GetVelocity().Y, GetVelocity().Z));
@@ -117,6 +155,10 @@ void UInventoryWidget::NativeConstruct() {
 	Print("NativeConstruct");
 #endif*/
 	
+}
+
+int32 UInventoryWidget::GetWeaponID(int32 index) {
+	return Weapons[index].id;
 }
 
 int32 UInventoryWidget::GetItemID(int32 index) {
@@ -143,23 +185,43 @@ FItem UInventoryWidget::DropItem(int32 index) {
 	return drop;
 }
 
+FItem UInventoryWidget::DropWeapon(int32 index) {
+	FItem drop = Weapons[index]; drop.id = Weapons[index].id;
+	Weapons[index].id = -1;
+	RefreshWeapon(index);
+	return drop;
+}
+
 int32 UInventoryWidget::AddItem(FItem new_item) {
 	FItem temp = new_item; temp.id = new_item.id;
-	for (int32 i = 0; i < items.Num(); i++) {
-		if (items[i].id < 0) {
-			items[i] = temp; items[i].id = temp.id;
-			RefreshItem(i);	return -1;
+	FString str = FItem::GetItemEnumAsString(new_item.type);
+	if (str.Contains("Gun")) {
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, "AddWeapon");
+		for (int32 i = 0; i < Weapons.Num(); i++) {
+			if (Weapons[i].id < 0) {
+				Weapons[i] = temp; Weapons[i].id = temp.id;
+				RefreshWeapon(i); return -1;
+			}
 		}
-		else if (items[i].type == new_item.type) {
-			int32 sum = items[i].quantity + temp.quantity;
-			if (sum <= items[i].limit) {
-				items[i].quantity = sum;
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, "AddItem");
+		for (int32 i = 0; i < items.Num(); i++) {
+			if (items[i].id < 0) {
+				items[i] = temp; items[i].id = temp.id;
 				RefreshItem(i);	return -1;
 			}
-			else {
-				int32 diff = sum - items[i].limit;
-				items[i].quantity = items[i].limit;
-				temp.quantity = diff;
+			else if (items[i].type == new_item.type) {
+				int32 sum = items[i].quantity + temp.quantity;
+				if (sum <= items[i].limit) {
+					items[i].quantity = sum;
+					RefreshItem(i);	return -1;
+				}
+				else {
+					int32 diff = sum - items[i].limit;
+					items[i].quantity = items[i].limit;
+					temp.quantity = diff;
+				}
 			}
 		}
 	}

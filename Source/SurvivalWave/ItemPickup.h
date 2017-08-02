@@ -60,6 +60,8 @@ struct FItem
 		case EItemType::IT_LifeM: return FString("IT_LifeM");
 		case EItemType::IT_LifeL: return FString("IT_LifeL");
 		case EItemType::IT_AmmoR: return FString("IT_AmmoR");
+		case EItemType::IT_GunR: return FString("IT_GunR");
+		case EItemType::IT_GunL: return FString("IT_GunL");
 		default: return FString("IT_Invalid");
 		}
 	}

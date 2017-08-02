@@ -153,6 +153,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool CanSwitch();
+
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool CanDropGun();
 	
 	void EnableRun();
 	void DisableRun();
@@ -165,6 +168,7 @@ public:
 
 	void NextGunPress();
 	void PreviousGunPress();
+	void DropGunPress();
 	void InventoryPress();
 	void InteractPress();
 	
@@ -180,21 +184,30 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Pickup")
 	void SwitchGunBP();
 
+	//Event to make Blueprint related things on this state context
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Pickup")
+	void DropGunPressBP();
+
 	UFUNCTION(BlueprintCallable, Category = "Pickup")
 	void SwitchGun();
-
-	UFUNCTION(BlueprintCallable, Category = "Pickup")
-	void PickupWeapon(TSubclassOf<class ATestWeapon> WhatWeapon);
-
+		
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
 	void SetupWeaponBP();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SetupWeaponIndexBP(int32 index);
 	
-	//Array of weapons that was pickup, null in case nothing was picked up, ToDo: 1st is the infinite ammo weapon. 
+	//Array of weapons that was pickup, null in case nothing was picked up
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TArray<AWeapon*> Weapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	TArray<TSubclassOf<class AWeapon> > Weapon_Class;
+	TMap<EItemType,TSubclassOf<class AWeapon> > WeaponMapClass;
+
+	//What Weapons to spawn at Begin Play, tip: use this to put the infinite gun class
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	TArray<TSubclassOf<class AWeapon> > WeaponClassInit;
+
 	//Selected Weapon Index
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	int32 weapon_select;

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "ItemPickup.h"
 #include "Weapon.generated.h"
 
 UCLASS()
@@ -49,6 +50,9 @@ public:
 	//Time in seconds for the muzzle Effects to stop spawning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	float muzzle_time;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	EItemType WeaponType;
 		
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Fire")
 	void StartFire();
