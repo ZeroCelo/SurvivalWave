@@ -12,6 +12,7 @@ enum class EItemType : uint8
 	IT_LifeM	UMETA(DisplayName = "LifeM"),
 	IT_LifeL	UMETA(DisplayName = "LifeL"),
 	IT_AmmoR	UMETA(DisplayName = "AmmoR"),
+	IT_AmmoL	UMETA(DisplayName = "AmmoL"),
 	IT_GunR		UMETA(DisplayName = "GunR"),
 	IT_GunL		UMETA(DisplayName = "GunL")
 };
@@ -125,11 +126,66 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	
+
 	AItemPickup();
 	
 	void WasCollected_Implementation() override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FItem ItemStat;
+
+	//Verify item limit and quantity and setup accordingly
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Item")
+	void CheckLimit();
+	virtual void CheckLimit_Implementation();
 	
+	/*
+		Item Types static definitions
+	*/
+
+	static TMap<EItemType, UMaterialInstance*> ItemMapMaterial;
+	static TMap<EItemType, UStaticMesh*> ItemMapMesh;
+	static TMap<EItemType, FVector> ItemMapSize;
+	static TMap<EItemType, int32> ItemMapLimit;
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	void ItemMapAdd(EItemType type, UMaterialInstance* Mat, UStaticMesh* Mesh, FVector Size);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	void ItemMapAddLimit(EItemType type, int32 Limit);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	void ItemMapAddMaterial(EItemType type, UMaterialInstance* Mat);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	void ItemMapAddMesh(EItemType type, UStaticMesh* Mesh);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	void ItemMapAddSize(EItemType type, FVector Size);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	int32 ItemMapGetLimit(EItemType type);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	UMaterialInstance* ItemMapGetMaterial(EItemType type);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	UStaticMesh* ItemMapGetMesh(EItemType type);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	FVector ItemMapGetSize(EItemType type);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	bool ItemMapContainsLimit(EItemType type);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	bool ItemMapContainsMaterial(EItemType type);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	bool ItemMapContainsMesh(EItemType type);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	bool ItemMapContainsSize(EItemType type);
 };

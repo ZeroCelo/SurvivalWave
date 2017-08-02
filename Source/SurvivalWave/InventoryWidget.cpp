@@ -231,7 +231,7 @@ int32 UInventoryWidget::AddItem(FItem new_item) {
 
 void UInventoryWidget::MoveItem(int32 source, int32 destiny) {
 	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, "MoveItem");
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("MoveItem %d, %d"), source, destiny));
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("MoveItem %d, %d"), source, destiny));
 	if (items[destiny].id != -1) {
 		if (items[destiny].type == items[source].type) {
 			int32 sum = items[destiny].quantity + items[source].quantity;
@@ -240,9 +240,16 @@ void UInventoryWidget::MoveItem(int32 source, int32 destiny) {
 				items[source].id = -1;
 			}
 			else {
-				int32 diff = sum - items[destiny].limit;
-				items[destiny].quantity = items[destiny].limit;
-				items[source].quantity = diff;
+				if (items[destiny].quantity == items[destiny].limit){
+					int32 diff = sum - items[destiny].limit;
+					items[source].quantity = items[destiny].limit;
+					items[destiny].quantity = diff;
+				}
+				else {
+					int32 diff = sum - items[destiny].limit;
+					items[destiny].quantity = items[destiny].limit;
+					items[source].quantity = diff;
+				}
 			}
 		}
 		else {
