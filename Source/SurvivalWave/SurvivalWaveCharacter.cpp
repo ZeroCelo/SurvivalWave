@@ -54,6 +54,8 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	this->AddOwnedComponent(LifeStats);
 	//LifeStats->SetupAttachment(RootComponent);
 
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ASurvivalWaveCharacter::DetectDamage);
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 	
@@ -118,13 +120,14 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Run", IE_Released, this, &ASurvivalWaveCharacter::DisableRun);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ASurvivalWaveCharacter::EnableAim);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ASurvivalWaveCharacter::DisableAim);
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASurvivalWaveCharacter::EnableFire);
-	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASurvivalWaveCharacter::DisableFire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASurvivalWaveCharacter::PullTrigger);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASurvivalWaveCharacter::ReleaseTrigger);
 	PlayerInputComponent->BindAction("PreviousGun", IE_Pressed, this, &ASurvivalWaveCharacter::PreviousGunPress);
 	PlayerInputComponent->BindAction("NextGun", IE_Pressed, this, &ASurvivalWaveCharacter::NextGunPress);
 	PlayerInputComponent->BindAction("Inventory", IE_Pressed, this, &ASurvivalWaveCharacter::InventoryPress);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASurvivalWaveCharacter::InteractPress);
 	PlayerInputComponent->BindAction("DropGun", IE_Pressed, this, &ASurvivalWaveCharacter::DropGunPress);
+	PlayerInputComponent->BindAction("ReloadGun", IE_Pressed, this, &ASurvivalWaveCharacter::ReloadGunPress);
 }
 
 void ASurvivalWaveCharacter::OnResetVR()
@@ -228,6 +231,14 @@ void ASurvivalWaveCharacter::BeginPlay() {
 			UpdateHUDLife();
 		}
 	}
+	//Setup Weapon Information widget
+	if (WeaponHUDClass != nullptr) {
+		WeaponHUDWidget = CreateWidget<UUserWidget>(GetWorld(), WeaponHUDClass);
+		if (WeaponHUDWidget != nullptr) {
+			WeaponHUDWidget->AddToViewport();
+			UpdateHUDWeapon();
+		}
+	}
 	for (int32 i = 0; i < WeaponClassInit.Num() && (i - 1) < Weapon.Num(); i++) {
 	//if(Weapon_Class.Num() > 0){
 		if (WeaponClassInit[i] != nullptr) {
@@ -271,7 +282,7 @@ void ASurvivalWaveCharacter::Tick(float DeltaTime)
 }
 
 bool ASurvivalWaveCharacter::CanRun() {
-	return (!bswitching && !binventory && run_forward > 0.90f);
+	return (!bswitching && !bReloading && !binventory && run_forward > 0.90f);
 }
 
 bool ASurvivalWaveCharacter::CanAim() {
@@ -279,11 +290,11 @@ bool ASurvivalWaveCharacter::CanAim() {
 }
 
 bool ASurvivalWaveCharacter::CanFire() {
-	return (!bswitching && !binventory);
+	return (!bswitching && !binventory && !bReloading);
 }
 
 bool ASurvivalWaveCharacter::CanInventory() {
-	return (!bfiring && !baiming && !brunning);
+	return (!bfiring && !baiming && !brunning && !bReloading);
 }
 
 bool ASurvivalWaveCharacter::CanInteract() {
@@ -291,17 +302,21 @@ bool ASurvivalWaveCharacter::CanInteract() {
 }
 
 bool ASurvivalWaveCharacter::CanSwitch() {
-	return (!bswitching);
+	return (!bswitching && !bReloading);
 }
 
 bool ASurvivalWaveCharacter::CanDropGun() {
-	return (!brunning && !baiming);
+	return (!brunning && !baiming && !bReloading);
+}
+
+bool ASurvivalWaveCharacter::CanReloadGun() {
+	return (!brunning && !binventory && !bswitching && !bReloading);
 }
 
 void ASurvivalWaveCharacter::EnableRun() {
 	brun_press = true;
 	if (CanRun()) {
-		DisableFire();
+		ReleaseTrigger();
 		brunning = true;
 		baiming = false;
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
@@ -352,23 +367,51 @@ void ASurvivalWaveCharacter::DisableAim() {
 	CheckCam();
 }
 
-void ASurvivalWaveCharacter::EnableFire() {
+void ASurvivalWaveCharacter::PullTrigger() {
 	if (CanFire()) {
 		DisableRun();
 		bfiring = true;
-		if (Weapon[weapon_select] != nullptr)
+		if (Weapon[weapon_select] != nullptr) {
 			Weapon[weapon_select]->StartFire();
+			GetWorld()->GetTimerManager().SetTimer(TriggerTimer, this, &ASurvivalWaveCharacter::UpdateHUDWeapon, 0.2f, true);
+		}
 		UpdateAnimFire();
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire")));
+		UpdateHUDWeapon();
 	}
 }
 
-void ASurvivalWaveCharacter::DisableFire() {
+void ASurvivalWaveCharacter::ReleaseTrigger() {
 	bfiring = false;
 	if (Weapon[weapon_select] != nullptr)
 		Weapon[weapon_select]->StopFire();
+	GetWorld()->GetTimerManager().ClearTimer(TriggerTimer);
 	UpdateAnimFire();
+	UpdateHUDWeapon();
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("UnFire")));
+}
+
+void ASurvivalWaveCharacter::StartFire() {
+	bfiring = true;
+	/*if (Weapon[weapon_select] != nullptr) {
+		
+		float game_time = GetWorld()->GetTimeSeconds();
+		float dif_time = game_time - LastFireTime;
+		if (dif_time >= Weapon[weapon_select]->DamageStats->GetDamageRate()) {
+			LastFireTime = game_time;
+			Weapon[weapon_select]->StartFire();
+		}
+		GetWorld()->GetTimerManager().SetTimer(TriggerTimer, this, &ASurvivalWaveCharacter::StartFire, LastFireTime + Weapon[weapon_select]->DamageStats->GetDamageRate() - game_time, false);
+		//GetWorld()->GetTimerManager().SetTimer(Weapon[weapon_select]->MuzzleTimer, this, &ASurvivalWaveCharacter::StopFire, Weapon[weapon_select]->muzzle_time, false);
+	}*/
+	UpdateAnimFire();
+	UpdateHUDWeapon();
+}
+
+void ASurvivalWaveCharacter::StopFire() {
+	bfiring = false;
+
+	UpdateAnimFire();
+	UpdateHUDWeapon();
 }
 
 void ASurvivalWaveCharacter::SwitchGun() {
@@ -386,7 +429,7 @@ void ASurvivalWaveCharacter::NextGunPress() {
 			if (Weapon[weapon_select_next] != nullptr) {
 				if (weapon_select_next == weapon_select) break;
 				bswitching = true;
-				DisableFire();
+				ReleaseTrigger();
 				//DisableAim();
 				DisableRun();
 
@@ -407,7 +450,7 @@ void ASurvivalWaveCharacter::PreviousGunPress() {
 			if (Weapon[weapon_select_next] != nullptr) {
 				if (weapon_select_next == weapon_select) break;
 				bswitching = true;
-				DisableFire();
+				ReleaseTrigger();
 				//DisableAim();
 				DisableRun();
 
@@ -424,10 +467,15 @@ void ASurvivalWaveCharacter::DropGunPress() {
 	if (CanDropGun()) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("DropGun Try")));
 		if (weapon_select > 0) {
+			UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
+			if (itemUI != nullptr) {
+				itemUI->Weapons[weapon_select - 1].quantity = Weapon[weapon_select]->GetWeaponAmmo();
+				itemUI->Weapons[weapon_select - 1].limit = Weapon[weapon_select]->GetWeaponAmmo();
+			}
 			Weapon[weapon_select]->Destroy();
 			Weapon[weapon_select] = nullptr;
-			NextGunPress();
 			DropGunPressBP();
+			NextGunPress();
 		}
 	}
 }
@@ -442,28 +490,61 @@ void ASurvivalWaveCharacter::InventoryPress() {
 	}
 }
 
+void ASurvivalWaveCharacter::ReloadGunPress() {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reload")));
+	if (CanReloadGun()) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reloading...")));
+		UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
+		if (Weapon[weapon_select] != nullptr && itemUI != nullptr) {
+			int32 ammo_sum = itemUI->GetItemSum(Weapon[weapon_select]->GetWeaponAmmoType());
+			if (Weapon[weapon_select]->ShouldReload() && Weapon[weapon_select]->IsReloadInfinite()) {
+				Weapon[weapon_select]->ReloadAmmo(Weapon[weapon_select]->GetWeaponAmmoMax());
+				bReloading = true;
+				ReleaseTrigger();
+				DisableRun();
+				UpdateAnimReload();
+			}
+			else if (Weapon[weapon_select]->ShouldReload() && !Weapon[weapon_select]->IsReloadInfinite() && ammo_sum > 0) {
+				
+				int32 ammo_need = Weapon[weapon_select]->GetWeaponAmmoMax() - Weapon[weapon_select]->GetWeaponAmmo();
+				if (ammo_sum > ammo_need) {
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reloading...Consume Remain")));
+					Weapon[weapon_select]->ReloadAmmo(ammo_need);
+					itemUI->ConsumeItem(Weapon[weapon_select]->GetWeaponAmmoType(),ammo_need);
+					bReloading = true;
+					ReleaseTrigger();
+					DisableRun();
+					UpdateAnimReload();
+				}
+				else {
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reloading...Consume All")));
+					Weapon[weapon_select]->ReloadAmmo(ammo_sum);
+					itemUI->ConsumeItem(Weapon[weapon_select]->GetWeaponAmmoType(), ammo_sum);
+					bReloading = true;
+					ReleaseTrigger();
+					DisableRun();
+					UpdateAnimReload();
+				}
+			}
+		}
+	}
+}
+
 void ASurvivalWaveCharacter::InteractPress() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Interact")));
 	if (CanInteract()) {
 
 		if (items.Num()) {	//Have item to pickup
 			FItem it = items.CreateConstIterator()->Value;
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Item id%d quant%d limit%d type:%s"), it.id,it.quantity, it.limit, *FItem::GetItemEnumAsString(it.type)));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Item id%d quant%d limit%d type:%s"), it.id,it.quantity, it.limit, *FItem::GetItemEnumAsString(it.type)));
 			UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
 			if (itemUI != nullptr) {
 				FString str = FItem::GetItemEnumAsString(it.type);
-				bool bAddWeapon = false;
 				if (str.Contains("Gun")) {
 					for (int32 i = 0;i < Weapon.Num();i++) {
 						if (Weapon[i] == nullptr && WeaponMapClass.Contains(it.type)) {
 							Weapon[i] = GetWorld()->SpawnActor<AWeapon>(WeaponMapClass[it.type]);
-							/*if (Weapon[i] != nullptr) {
-								FAttachmentTransformRules trans(EAttachmentRule::SnapToTarget,true);
-								FString str("SockWeaponRifle");
-								str.AppendInt(i);
-								Weapon[i]->AttachToComponent(GetMesh(),trans,FName(*str));
-							}*/
-							bAddWeapon = true;
+							Weapon[i]->Ammo = it.quantity;
 							SetupWeaponIndexBP(i);
 							break;
 						}
@@ -595,19 +676,16 @@ void ASurvivalWaveCharacter::PickupDetectionExit(UPrimitiveComponent* Overlapped
 	//uint32 act_address = (uint32)(OtherActor);
 }
 
+void ASurvivalWaveCharacter::DetectDamage(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	LifeStats->DetectDamage(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+	UpdateHUDLife();
+}
+
 FItem ASurvivalWaveCharacter::GetPickup() {
 	if (items.Num()) {
 		return items.CreateConstIterator()->Value;
 	}
 	FItem ret; ret.quantity = -1;
 	return ret;
-}
-
-void ASurvivalWaveCharacter::CheckDamage(AProjectile* Gun) {
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Check Damage")));
-	if (Gun != nullptr) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Oh No!")));
-		LifeStats->TakeDamage(Gun->Damage);
-		UpdateHUDLife();
-	}
 }

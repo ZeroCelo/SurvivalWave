@@ -18,68 +18,33 @@ void AWeapon_Instant::ShootImpact(FHitResult HitResult) {
 	}
 }
 
-void AWeapon_Instant::StartFire_Implementation() {
-	float game_time = GetWorld()->GetTimeSeconds();
-	float dif_time = game_time - LastFireTime;
-	if (dif_time >= DamageRate) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Shoot")));
-		FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
-		RV_TraceParams.bTraceComplex = true;
-		RV_TraceParams.bTraceAsyncScene = true;
-		RV_TraceParams.bReturnPhysicalMaterial = false;
-		//RV_TraceParams.debug
-		//const FName TraceTag("MyTraceTag");
-		//GetWorld()->DebugDrawTraceTag = TraceTag;
-		//if (trace_debug)
-		//	RV_TraceParams.TraceTag = TraceTag;
-
-		//Re-initialize hit info
-		FHitResult RV_Hit(ForceInit);
-
-		FVector start = FirePoint->GetComponentTransform().GetLocation();
-		FVector end = start + FirePoint->GetComponentTransform().GetRotation().Vector()*DamageRange;
-
-		//call GetWorld() from within an actor extending class
-		GetWorld()->LineTraceSingleByChannel(
-			RV_Hit,        //result
-			start,    //start
-			end, //end
-			ECC_Pawn, //collision channel
-			RV_TraceParams
-		);
-		ShootImpact(RV_Hit);
-		//hitting = RV_Hit.bBlockingHit;
-		//HitLocation = RV_Hit.Location;
-		LastFireTime = game_time;
-		SimulateFire();
-	}
-	GetWorld()->GetTimerManager().SetTimer(FireTimer, this, &AWeapon_Instant::StartFire, LastFireTime + DamageRate - game_time, false);
-	GetWorld()->GetTimerManager().SetTimer(MuzzleTimer, this, &AWeapon_Instant::SimulateFireStop, muzzle_time, false);
-}
-
-void AWeapon_Instant::StopFire_Implementation() {
-	GetWorld()->GetTimerManager().ClearTimer(FireTimer);
-	//GetWorld()->GetTimerManager().ClearTimer(MuzzleTimer);
+void AWeapon_Instant::Shoot_Implementation() {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Shoot")));
+	FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
+	RV_TraceParams.bTraceComplex = true;
+	RV_TraceParams.bTraceAsyncScene = true;
+	RV_TraceParams.bReturnPhysicalMaterial = false;
+	//RV_TraceParams.debug
+	//const FName TraceTag("MyTraceTag");
+	//GetWorld()->DebugDrawTraceTag = TraceTag;
+	//if (trace_debug)
+	//	RV_TraceParams.TraceTag = TraceTag;
 	
-	//SimulateFireStop();
-}
+	//Re-initialize hit info
+	FHitResult RV_Hit(ForceInit);
 
-void AWeapon_Instant::SimulateFire_Implementation() {
-	if (MuzzleFX != nullptr && MuzzlePSC == nullptr) {
-		//MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, FirePoint, NAME_None,FirePoint->RelativeLocation,FirePoint->RelativeRotation);
-		MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, FirePoint);
-		//MuzzlePSC->bAutoDestroy = false;
-		//MuzzlePSC->bAllowRecycling = true;
-		//MuzzlePSC->bOwnerNoSee = false;
-		//MuzzlePSC->bOnlyOwnerSee = true;
-	}
-	
-}
+	FVector start = FirePoint->GetComponentTransform().GetLocation();
+	FVector end = start + FirePoint->GetComponentTransform().GetRotation().Vector()*DamageStats->GetDamageRange();
 
-void AWeapon_Instant::SimulateFireStop_Implementation() {
-	if (MuzzlePSC != nullptr)
-	{
-		MuzzlePSC->DeactivateSystem();
-		MuzzlePSC = nullptr;
-	}
+	//call GetWorld() from within an actor extending class
+	GetWorld()->LineTraceSingleByChannel(
+		RV_Hit,        //result
+		start,    //start
+		end, //end
+		ECC_Pawn, //collision channel
+		RV_TraceParams
+	);
+	ShootImpact(RV_Hit);
+	//hitting = RV_Hit.bBlockingHit;
+	//HitLocation = RV_Hit.Location;
 }

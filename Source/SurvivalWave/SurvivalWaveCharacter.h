@@ -103,6 +103,9 @@ public:
 	TMap<int32, AItemPickup*> items_actor;
 
 	UFUNCTION(BlueprintCallable)
+	void DetectDamage(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(BlueprintCallable)
 	void PickupDetectionEnter(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 	UFUNCTION(BlueprintCallable)
@@ -136,6 +139,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category = "Anim")
 	void UpdateAnimSwitch();
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Anim")
+	void UpdateAnimReload();
+
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool CanRun();
 
@@ -156,6 +162,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool CanDropGun();
+
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool CanReloadGun();
 	
 	void EnableRun();
 	void DisableRun();
@@ -163,14 +172,24 @@ public:
 	void EnableAim();
 	void DisableAim();
 
-	void EnableFire();
-	void DisableFire();
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void StartFire();
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void StopFire();
+
+	void PullTrigger();
+	void ReleaseTrigger();
 
 	void NextGunPress();
 	void PreviousGunPress();
 	void DropGunPress();
+	void ReloadGunPress();
 	void InventoryPress();
 	void InteractPress();
+
+	float LastFireTime;
+	FTimerHandle TriggerTimer;
 	
 	//Event to make Blueprint related things on this state context
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Inventory")
@@ -229,6 +248,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Setter")
 	void SetRunning(bool val) { brunning = val; }
+
+	UFUNCTION(BlueprintCallable, Category = "Setter")
+	void SetReloading(bool val) { bReloading = val; }
 		
 	UFUNCTION(BlueprintCallable, Category = "Getter")
 	bool GetSwitching() { return bswitching; }
@@ -244,6 +266,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Getter")
 	bool GetInventory() { return binventory; }
+
+	UFUNCTION(BlueprintCallable, Category = "Getter")
+	bool GetReloading() { return bReloading; }
 		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bswitching;
@@ -259,6 +284,9 @@ public:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
 	bool binventory;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
+	bool bReloading;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
 	float speed_run;
@@ -316,10 +344,16 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
 	void UpdateHUDLife();
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
+	void UpdateHUDWeapon();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HUD")
+	TSubclassOf<class UUserWidget> WeaponHUDClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
+	class UUserWidget* WeaponHUDWidget;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Life")
 	class ULifeStat* LifeStats;
-
-	UFUNCTION(BlueprintCallable)
-	void CheckDamage(AProjectile* Gun);
 };
 

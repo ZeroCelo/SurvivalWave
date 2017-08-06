@@ -23,9 +23,12 @@ AProjectile::AProjectile()
 	CollisionSphere->SetSphereRadius(50.0f);
 	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::ProjectileHit);
 
+	DamageStats = CreateDefaultSubobject<UDamageStat>(TEXT("DamageComponent"));
+	this->AddOwnedComponent(DamageStats);
+
 	//WeaponParent = nullptr;
-	Damage = 1.0f;
-	MaxDistance = 1000.0f;
+	//Damage = 1.0f;
+	//MaxDistance = 1000.0f;
 }
 
 // Called when the game starts or when spawned
@@ -45,9 +48,8 @@ void AProjectile::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	FVector dist = this->GetActorLocation() - StartPosition;
 	float d = dist.Size();
-	if (d > MaxDistance) {
+	if (d > DamageStats->GetDamageRange()) {
 		Impact(GetActorLocation(),GetActorRotation());
-		this->Destroy();
 	}
 }
 
@@ -59,17 +61,7 @@ void AProjectile::Impact(FVector location, FRotator rotation) {
 	this->Destroy();
 }
 
-void AProjectile::ImpactCheck(AActor* Other) {
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("ImpactCheck")));
-	ASurvivalWaveCharacter* Player = Cast<ASurvivalWaveCharacter>(Other);
-	if (Player != nullptr) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Impact Player!")));
-				
-		Player->CheckDamage(this);
-	}
-}
-
 void AProjectile::ProjectileHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	Impact(CollisionSphere->GetComponentLocation(), CollisionSphere->GetComponentRotation());
-	ImpactCheck(OtherActor);
+	//ImpactCheck(OtherActor);
 }

@@ -2,7 +2,10 @@
 
 #include "SurvivalWave.h"
 #include "LifeStat.h"
+//#include "DamageStat.h"
 
+#include "EngineGlobals.h"
+//#include "Engine.h"
 
 // Sets default values for this component's properties
 ULifeStat::ULifeStat()
@@ -35,6 +38,10 @@ void ULifeStat::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	// ...
 }
 
+bool ULifeStat::NeedHealing() {
+	return (Life < LifeMax);
+}
+
 bool ULifeStat::IsDead() {
 	return (Life <= 0.0f);
 }
@@ -44,12 +51,26 @@ void ULifeStat::RestoreLife_Implementation(float rest) {
 	if (Life >= LifeMax)Life = LifeMax;
 }
 
-void ULifeStat::TakeDamage_Implementation(float dmg) {
-	Life -= dmg;
-	if (Life <= 0.0f)Life = 0.0f;
+void ULifeStat::TakeDamage_Implementation(UDamageStat* dmg) {
+	if (dmg != nullptr) {
+		Life -= dmg->GetDamage();
+		if (Life <= 0.0f)Life = 0.0f;
+	}
 }
 
 void ULifeStat::TakeDamageMultiplier_Implementation(float dmg,float multi) {
 	Life -= (dmg*multi);
 	if (Life <= 0.0f)Life = 0.0f;
+}
+
+void ULifeStat::DetectDamage(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("LifeStat Detect")));
+	//UDamageStat* Dam = OtherActor->FindComponentByClass<UDamageStat>();
+	UDamageStat* Dam = OtherActor->FindComponentByClass<UDamageStat>();
+
+	if (Dam != nullptr) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Damage!!! %f"), Dam->GetDamage()));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Damage!!!")));
+		TakeDamage(Dam);
+	}
 }

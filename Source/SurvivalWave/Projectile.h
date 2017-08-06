@@ -25,6 +25,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
+	class UDamageStat* DamageStats;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	class USphereComponent* CollisionSphere;
 
@@ -48,19 +51,12 @@ public:
 	/** spawned component for muzzle FX */
 	UPROPERTY(Transient)
 	UParticleSystemComponent* ProjectilePSC;
-
-	//The distance until the projectile dies
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxDistance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Damage;
-
+		
 	FVector StartPosition;
 
 	UFUNCTION(BlueprintCallable)
 	void ProjectileHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 		
 	void Impact(FVector location, FRotator rotation);
-	void ImpactCheck(AActor* Other);
+		
 };

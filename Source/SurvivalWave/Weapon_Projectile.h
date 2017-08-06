@@ -18,25 +18,9 @@ class SURVIVALWAVE_API AWeapon_Projectile : public AWeapon
 public:
 	AWeapon_Projectile();
 
-	FTimerHandle FireTimer;
-	FTimerHandle MuzzleTimer;
-
-	float LastFireTime;
-
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AProjectile> ProjectileClass;
-
-	/** FX for muzzle flash */
-	UPROPERTY(EditDefaultsOnly, Category = "Effects")
-	UParticleSystem* MuzzleFX;
-
-	/** spawned component for muzzle FX */
-	UPROPERTY(Transient)
-	UParticleSystemComponent* MuzzlePSC;
 	
-	virtual void StartFire_Implementation();
-	virtual void StopFire_Implementation();
-	virtual void SimulateFire_Implementation();
-	virtual void SimulateFireStop_Implementation();
+	virtual void Shoot_Implementation();
 	
 };

@@ -30,8 +30,10 @@ void AItemPickup::CheckLimit_Implementation() {
 			ItemStat.quantity = ItemStat.limit;
 	}
 	else {
-		ItemStat.quantity = 1;
-		ItemStat.limit = 1;
+		if (ItemStat.quantity != ItemStat.limit) {
+			ItemStat.quantity = 1;
+			ItemStat.limit = 1;
+		}
 	}
 }
 

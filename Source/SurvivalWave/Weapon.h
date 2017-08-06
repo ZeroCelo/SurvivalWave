@@ -4,6 +4,8 @@
 
 #include "GameFramework/Actor.h"
 #include "ItemPickup.h"
+#include "DamageStat.h"
+
 #include "Weapon.generated.h"
 
 UCLASS()
@@ -24,28 +26,43 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
+	class UDamageStat* DamageStats;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
 	class USkeletalMeshComponent* SkelMesh;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	class UArrowComponent* FirePoint;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
-	float Damage;
+	FTimerHandle FireTimer;
+	FTimerHandle MuzzleTimer;
+
+	float LastFireDiff;
+	float LastFireTime;
+		
+	/** FX for muzzle flash */
+	UPROPERTY(EditDefaultsOnly, Category = "Visual")
+	UParticleSystem* MuzzleFX;
+
+	/** spawned component for muzzle FX */
+	UPROPERTY(Transient)
+	UParticleSystemComponent* MuzzlePSC;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
-	float DamageRange;
+	int32 Ammo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
-	float DamageRate;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
-	float Ammo;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
-	float AmmoMax;
+	int32 AmmoMax;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	bool bAmmoInfinite;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+	bool bReloadInfinite;
+
+	//Time in seconds for the Reload Animation
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	float ReloadTime;
 
 	//Time in seconds for the muzzle Effects to stop spawning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
@@ -53,7 +70,37 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
 	EItemType WeaponType;
-		
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	EItemType WeaponAmmoType;
+	
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	EItemType GetWeaponType();
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	EItemType GetWeaponAmmoType();
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	float ReloadAmmo(float new_ammo);
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	bool IsAmmoEmpty();
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	bool IsAmmoFull();
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	bool IsReloadInfinite();
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	bool ShouldReload();
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	float GetWeaponAmmo();
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	float GetWeaponAmmoMax();
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Fire")
 	void StartFire();
 	virtual void StartFire_Implementation();
@@ -71,4 +118,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Fire")
 	void SimulateFireStop();
 	virtual void SimulateFireStop_Implementation();
+
+	/* Actual Firing of bullet*/
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Fire")
+	void Shoot();
+	virtual void Shoot_Implementation();
 };

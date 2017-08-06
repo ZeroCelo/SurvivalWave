@@ -43,12 +43,29 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	FItem DropWeapon(int32 index);
 
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void ConsumeItemAt(int32 index, int32 consume_need);
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void ConsumeItem(EItemType it,int32 consume_need);
+
+	//Add items into the Map variables for management: total, lists
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void AddItemList(FItem new_item,int32 new_quantity,int32 index);
+
+	//Process the move operation in the management variable MapList and update accordingly, call it after the move operation
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void MoveItemList(int32 source, int32 destiny);
+
 	//Try to add item to inventory, return quantity consumed if any
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	int32 AddItem(FItem new_item);
 
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	void MoveItem(int32 source, int32 destiny);
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	int32 GetItemSum(EItemType it);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Data")
 	void RefreshItem(int32 index);
@@ -100,5 +117,26 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
 	int32 items_h;
+
+	//Index of the local player we belong
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	int32 PlayerIndex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	TMap<EItemType, float> ItemMapConsume;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Data")
+	TMap<EItemType, int32> ItemMapTotal;
+
+	TMap<EItemType, TArray<int32> > ItemMapList;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	TMap<EItemType, UTexture2D*> ItemMapImage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	TMap<EItemType, FLinearColor> ItemMapColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	TMap<EItemType, FText> ItemMapText;
 
 };
