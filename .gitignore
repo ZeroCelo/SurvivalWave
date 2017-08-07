@@ -77,6 +77,7 @@ DerivedDataCache/*
 # End of https://www.gitignore.io/api/unrealengine
 
 Content/*
+DemoBuild/
 !Content/Animations/
 !Content/Blueprints/
 !Content/Materials/
