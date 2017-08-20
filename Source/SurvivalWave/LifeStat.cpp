@@ -3,6 +3,7 @@
 #include "SurvivalWave.h"
 #include "LifeStat.h"
 //#include "DamageStat.h"
+//#include "Projectile.h"
 
 #include "EngineGlobals.h"
 //#include "Engine.h"
@@ -69,8 +70,8 @@ void ULifeStat::DetectDamage(UPrimitiveComponent* OverlappedComp, AActor* OtherA
 	UDamageStat* Dam = OtherActor->FindComponentByClass<UDamageStat>();
 
 	if (Dam != nullptr) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Damage!!! %f"), Dam->GetDamage()));
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Damage!!!")));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Damage!!! %f, %f, %f"), Dam->GetDamage(),Dam->GetDamageRange(),Dam->GetDamageRate()));
+		
 		TakeDamage(Dam);
 	}
 }

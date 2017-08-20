@@ -87,11 +87,17 @@ void AItemPickup::ItemMapAddLimit(EItemType type, int32 Limit) {
 	if (!ItemMapLimit.Contains(type)) {
 		ItemMapLimit.Add(type, Limit);
 	}
+	else {
+		ItemMapLimit[type] = Limit;
+	}
 }
 
 void AItemPickup::ItemMapAddMaterial(EItemType type, UMaterialInstance* Mat) {
 	if (!ItemMapMaterial.Contains(type)) {
 		ItemMapMaterial.Add(type, Mat);
+	}
+	else {
+		ItemMapMaterial[type] = Mat;
 	}
 }
 
@@ -99,10 +105,17 @@ void AItemPickup::ItemMapAddMesh(EItemType type, UStaticMesh* Mesh) {
 	if (!ItemMapMesh.Contains(type)) {
 		ItemMapMesh.Add(type, Mesh);
 	}
+	else {
+		ItemMapMesh[type] = Mesh;
+	}
 }
 
 void AItemPickup::ItemMapAddSize(EItemType type, FVector Size) {
 	if (!ItemMapSize.Contains(type)) {
 		ItemMapSize.Add(type, Size);
 	}
+	else {
+		ItemMapSize[type] = Size;
+	}
+
 }

@@ -54,7 +54,7 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	this->AddOwnedComponent(LifeStats);
 	//LifeStats->SetupAttachment(RootComponent);
 
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ASurvivalWaveCharacter::DetectDamage);
+	//GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ASurvivalWaveCharacter::DetectDamage);
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -491,7 +491,7 @@ void ASurvivalWaveCharacter::InventoryPress() {
 }
 
 void ASurvivalWaveCharacter::ReloadGunPress() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reload")));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reload")));
 	if (CanReloadGun()) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reloading...")));
 		UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
@@ -508,7 +508,7 @@ void ASurvivalWaveCharacter::ReloadGunPress() {
 				
 				int32 ammo_need = Weapon[weapon_select]->GetWeaponAmmoMax() - Weapon[weapon_select]->GetWeaponAmmo();
 				if (ammo_sum > ammo_need) {
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reloading...Consume Remain")));
+					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reloading...Consume Remain")));
 					Weapon[weapon_select]->ReloadAmmo(ammo_need);
 					itemUI->ConsumeItem(Weapon[weapon_select]->GetWeaponAmmoType(),ammo_need);
 					bReloading = true;
@@ -517,7 +517,7 @@ void ASurvivalWaveCharacter::ReloadGunPress() {
 					UpdateAnimReload();
 				}
 				else {
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reloading...Consume All")));
+					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reloading...Consume All")));
 					Weapon[weapon_select]->ReloadAmmo(ammo_sum);
 					itemUI->ConsumeItem(Weapon[weapon_select]->GetWeaponAmmoType(), ammo_sum);
 					bReloading = true;
@@ -531,7 +531,7 @@ void ASurvivalWaveCharacter::ReloadGunPress() {
 }
 
 void ASurvivalWaveCharacter::InteractPress() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Interact")));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Interact")));
 	if (CanInteract()) {
 
 		if (items.Num()) {	//Have item to pickup

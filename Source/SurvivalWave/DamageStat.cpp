@@ -9,7 +9,7 @@ UDamageStat::UDamageStat()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
 
@@ -37,22 +37,22 @@ void UDamageStat::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 	// ...
 }
 
-float UDamageStat::GetDamage_Implementation() {
+float UDamageStat::GetDamage() {
 	return Damage;
 }
 
-float UDamageStat::GetDamageRange_Implementation() {
+float UDamageStat::GetDamageRange() {
 	return DamageRange;
 }
 
-float UDamageStat::GetDamageRate_Implementation() {
+float UDamageStat::GetDamageRate() {
 	return DamageRate;
 }
 
-void UDamageStat::CopyDamage_Implementation(const UDamageStat* dam) {
+void UDamageStat::CopyDamage_Implementation(UDamageStat* dam) {
 	if (dam != nullptr) {
-		Damage = dam->Damage;
-		DamageRange = dam->DamageRange;
-		DamageRate = dam->DamageRate;
+		Damage = dam->GetDamage();
+		DamageRange = dam->GetDamageRange();
+		DamageRate = dam->GetDamageRate();
 	}
 }

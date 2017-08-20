@@ -32,21 +32,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	float DamageRate;
 		
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Damage")
+	UFUNCTION(BlueprintCallable, Category = "Damage")
 	float GetDamage();
-	virtual float GetDamage_Implementation();
 	
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Damage")
+	UFUNCTION(BlueprintCallable, Category = "Damage")
 	float GetDamageRange();
-	virtual float GetDamageRange_Implementation();
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Damage")
+	UFUNCTION(BlueprintCallable, Category = "Damage")
 	float GetDamageRate();
-	virtual float GetDamageRate_Implementation();
 
 	//Pass all variables to this component
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Damage")
-	void CopyDamage(const UDamageStat* dam);
-	virtual void CopyDamage_Implementation(const UDamageStat* dam);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Damage")
+	void CopyDamage(UDamageStat* dam);
+	virtual void CopyDamage_Implementation(UDamageStat* dam);
 
 };

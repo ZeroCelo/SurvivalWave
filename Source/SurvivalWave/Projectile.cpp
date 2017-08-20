@@ -4,27 +4,32 @@
 #include "Projectile.h"
 #include "Weapon_Projectile.h"
 #include "SurvivalWaveCharacter.h"
+#include "EnemyCharacter.h"
 
 
 // Sets default values
 AProjectile::AProjectile()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
-	FXPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("FXPoint"));
-	//BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
-	ProjectileMove = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMoving"));
-
 	RootComponent = CollisionSphere;
-	FXPoint->SetupAttachment(RootComponent);
-
 	CollisionSphere->SetSphereRadius(50.0f);
 	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::ProjectileHit);
 
+	FXPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("FXPoint"));
+	FXPoint->SetupAttachment(RootComponent);
+
+	//BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
+	
+	ProjectileMove = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMoving"));
+	this->AddOwnedComponent(ProjectileMove);
+	
 	DamageStats = CreateDefaultSubobject<UDamageStat>(TEXT("DamageComponent"));
 	this->AddOwnedComponent(DamageStats);
+
+	//ProjectileMove->SetUpdatedComponent(RootComponent);
 
 	//WeaponParent = nullptr;
 	//Damage = 1.0f;
@@ -40,6 +45,12 @@ void AProjectile::BeginPlay()
 		ProjectilePSC = UGameplayStatics::SpawnEmitterAttached(ProjectileFX, FXPoint);
 	}
 	StartPosition = this->GetActorLocation();
+	/*if (GetOwner() != nullptr) {
+		UDamageStat* Dam = GetOwner()->FindComponentByClass<UDamageStat>();
+		if (Dam != nullptr) {
+			DamageStats->CopyDamage(Dam);
+		}
+	}*/
 }
 
 // Called every frame
@@ -64,4 +75,15 @@ void AProjectile::Impact(FVector location, FRotator rotation) {
 void AProjectile::ProjectileHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	Impact(CollisionSphere->GetComponentLocation(), CollisionSphere->GetComponentRotation());
 	//ImpactCheck(OtherActor);
+	/*AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(OtherActor);
+	if (Enemy != nullptr) {
+		Enemy->LifeStats->TakeDamage(DamageStats);
+		//Enemy->LifeStats->TakeDamageMultiplier(20.0f,1.0f);
+		Enemy->UpdateHUDLife();
+	}
+	ASurvivalWaveCharacter* Player = Cast<ASurvivalWaveCharacter>(OtherActor);
+	if (Player != nullptr) {
+		Player->LifeStats->TakeDamage(DamageStats);
+		Player->UpdateHUDLife();
+	}*/
 }
