@@ -26,6 +26,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void FindRandomTarget();
+
+	UFUNCTION(BlueprintCallable)
+	void CallFindTarget();
+
+	UFUNCTION(BlueprintCallable)
+	void CallCheckDistance();
 		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
 	FVector Target;

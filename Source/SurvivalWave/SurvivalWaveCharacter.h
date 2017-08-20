@@ -181,6 +181,9 @@ public:
 	void PullTrigger();
 	void ReleaseTrigger();
 
+	void FirstGunPress();
+	void SecondGunPress();
+	void PistolGunPress();
 	void NextGunPress();
 	void PreviousGunPress();
 	void DropGunPress();

@@ -20,9 +20,9 @@ void AAISimpleController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	float TimeToWait = FMath::RandRange(IdleWaitTimeMin, IdleWaitTimeMax);
-	GetWorld()->GetTimerManager().SetTimer(IdleTimer, this, &AAISimpleController::FindRandomTarget, TimeToWait, false);
+	
 	//GetWorld()->GetTimerManager().SetTimer(IdleCheckTimer, this, &AEnemyCharacter::CheckDistance, IdleCheckTime, true);
+	CallFindTarget();
 }
 
 void AAISimpleController::FindRandomTarget() {
@@ -32,8 +32,7 @@ void AAISimpleController::FindRandomTarget() {
 	GetWorld()->GetNavigationSystem()->GetRandomPointInNavigableRadius(ActorLocation, DistanceFindRadius, Result);
 	Target = Result.Location;
 	GetWorld()->GetNavigationSystem()->SimpleMoveToLocation(this, Target);
-	GetWorld()->GetTimerManager().ClearTimer(IdleTimer);
-	GetWorld()->GetTimerManager().SetTimer(IdleTimer, this, &AAISimpleController::CheckDistance, IdleCheckTime, true);
+	CallCheckDistance();
 }
 
 void AAISimpleController::CheckDistance() {
@@ -41,8 +40,17 @@ void AAISimpleController::CheckDistance() {
 	FVector Dist = ActorLocation - Target;
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Enemy Checking %f"),Dist.Size()));
 	if (Dist.Size() < DistanceMargin) {
-		GetWorld()->GetTimerManager().ClearTimer(IdleTimer);
-		float TimeToWait = FMath::RandRange(IdleWaitTimeMin, IdleWaitTimeMax);
-		GetWorld()->GetTimerManager().SetTimer(IdleTimer, this, &AAISimpleController::FindRandomTarget, TimeToWait, false);
+		CallFindTarget();
 	}
+}
+
+void AAISimpleController::CallCheckDistance() {
+	GetWorld()->GetTimerManager().ClearTimer(IdleTimer);
+	GetWorld()->GetTimerManager().SetTimer(IdleTimer, this, &AAISimpleController::CheckDistance, IdleCheckTime, true);
+}
+
+void AAISimpleController::CallFindTarget() {
+	float TimeToWait = FMath::RandRange(IdleWaitTimeMin, IdleWaitTimeMax);
+	GetWorld()->GetTimerManager().ClearTimer(IdleTimer);
+	GetWorld()->GetTimerManager().SetTimer(IdleTimer, this, &AAISimpleController::FindRandomTarget, TimeToWait, false);
 }

@@ -128,6 +128,9 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASurvivalWaveCharacter::InteractPress);
 	PlayerInputComponent->BindAction("DropGun", IE_Pressed, this, &ASurvivalWaveCharacter::DropGunPress);
 	PlayerInputComponent->BindAction("ReloadGun", IE_Pressed, this, &ASurvivalWaveCharacter::ReloadGunPress);
+	PlayerInputComponent->BindAction("SelectWeapon1", IE_Pressed, this, &ASurvivalWaveCharacter::FirstGunPress);
+	PlayerInputComponent->BindAction("SelectWeapon2", IE_Pressed, this, &ASurvivalWaveCharacter::SecondGunPress);
+	PlayerInputComponent->BindAction("SelectWeaponPistol", IE_Pressed, this, &ASurvivalWaveCharacter::PistolGunPress);
 }
 
 void ASurvivalWaveCharacter::OnResetVR()
@@ -419,6 +422,45 @@ void ASurvivalWaveCharacter::SwitchGun() {
 	weapon_select = weapon_select_next;
 	weapon_select_next = temp;
 	SwitchGunBP();
+}
+
+void ASurvivalWaveCharacter::FirstGunPress() {
+	if (CanSwitch() && weapon_select != 1) {
+		if (Weapon[1] != nullptr) {
+			weapon_select_next = 1;
+			bswitching = true;
+			ReleaseTrigger();
+			//DisableAim();
+			DisableRun();
+			UpdateAnimSwitch();
+		}
+	}
+}
+
+void ASurvivalWaveCharacter::SecondGunPress() {
+	if (CanSwitch() && weapon_select != 2) {
+		if (Weapon[2] != nullptr) {
+			weapon_select_next = 2;
+			bswitching = true;
+			ReleaseTrigger();
+			//DisableAim();
+			DisableRun();
+			UpdateAnimSwitch();
+		}
+	}
+}
+
+void ASurvivalWaveCharacter::PistolGunPress() {
+	if (CanSwitch() && weapon_select != 0) {
+		if (Weapon[0] != nullptr) {
+			weapon_select_next = 0;
+			bswitching = true;
+			ReleaseTrigger();
+			//DisableAim();
+			DisableRun();
+			UpdateAnimSwitch();
+		}
+	}
 }
 
 void ASurvivalWaveCharacter::NextGunPress() {
