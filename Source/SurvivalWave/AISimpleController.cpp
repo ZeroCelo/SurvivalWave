@@ -20,6 +20,7 @@ void AAISimpleController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	EnemyRef = Cast<AEnemyCharacter>(GetPawn());
 	
 	//GetWorld()->GetTimerManager().SetTimer(IdleCheckTimer, this, &AEnemyCharacter::CheckDistance, IdleCheckTime, true);
 	CallFindTarget();
@@ -28,7 +29,7 @@ void AAISimpleController::BeginPlay()
 void AAISimpleController::FindRandomTarget() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Enemy Finding...")));
 	FNavLocation Result;
-	FVector ActorLocation = GetControlledPawn()->GetActorLocation();
+	FVector ActorLocation = GetPawn()->GetActorLocation();
 	GetWorld()->GetNavigationSystem()->GetRandomPointInNavigableRadius(ActorLocation, DistanceFindRadius, Result);
 	Target = Result.Location;
 	GetWorld()->GetNavigationSystem()->SimpleMoveToLocation(this, Target);
@@ -36,7 +37,7 @@ void AAISimpleController::FindRandomTarget() {
 }
 
 void AAISimpleController::CheckDistance() {
-	FVector ActorLocation = GetControlledPawn()->GetActorLocation();
+	FVector ActorLocation = GetPawn()->GetActorLocation();
 	FVector Dist = ActorLocation - Target;
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Enemy Checking %f"),Dist.Size()));
 	if (Dist.Size() < DistanceMargin) {

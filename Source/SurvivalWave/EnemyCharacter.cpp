@@ -2,6 +2,7 @@
 
 #include "SurvivalWave.h"
 #include "EnemyCharacter.h"
+#include "SurvivalWaveCharacter.h"
 
 //#include "AI/Navigation/NavigationSystem.h"
 //#include "Kismet/KismetSystemLibrary.h"
@@ -17,14 +18,12 @@ AEnemyCharacter::AEnemyCharacter()
 	LifeStats = CreateDefaultSubobject<ULifeStat>(TEXT("LifeComponent"));
 	this->AddOwnedComponent(LifeStats);
 
-	//GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AEnemyCharacter::DetectDamage);
-	/*bStateIdle = true;
-	IdleCheckTime = 0.050f;
-	IdleWaitTimeMin = 3.0f;
-	IdleWaitTimeMax = 4.0f;
-	DistanceMargin = 200.0f;
-	DistanceFindRadius = 1000.0f;
-	*/
+	PerceptionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PerceptionSphere"));
+	PerceptionSphere->SetupAttachment(RootComponent);
+	PerceptionSphere->SetSphereRadius(500.0f);
+
+	PerceptionSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemyCharacter::DetectPlayer);
+	PerceptionSphere->OnComponentEndOverlap.AddDynamic(this, &AEnemyCharacter::UnDetectPlayer);
 }
 
 // Called when the game starts or when spawned
@@ -52,4 +51,34 @@ void AEnemyCharacter::DetectDamage(UPrimitiveComponent* OverlappedComp, AActor* 
 {
 	LifeStats->DetectDamage(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	UpdateHUDLife();
+
+}
+
+AActor* AEnemyCharacter::GetTargetPlayer() {
+	if (PlayerActors.Num()) {
+		return PlayerActors.CreateConstIterator()->Value;
+	}
+	return nullptr;
+}
+
+void AEnemyCharacter::DetectPlayer(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	ASurvivalWaveCharacter* play = Cast<ASurvivalWaveCharacter>(OtherActor);
+	if (play != nullptr) {
+		int64 add = (int64)(OtherActor);
+		int64 poi = (int64)(&OtherActor);
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Player >>Detect %s %llx %llX"),*play->GetName(),poi,add));
+		if(!PlayerActors.Contains(add))
+			PlayerActors.Add(add,OtherActor);
+	}
+}
+
+void AEnemyCharacter::UnDetectPlayer(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
+	ASurvivalWaveCharacter* play = Cast<ASurvivalWaveCharacter>(OtherActor);
+	if (play != nullptr) {
+		int64 add = (int64)(OtherActor);
+		int64 poi = (int64)(&OtherActor);
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Player Detect>> %s %llx %llX"), *play->GetName(), poi, add));
+		if (PlayerActors.Contains(add))
+			PlayerActors.Remove(add);
+	}
 }

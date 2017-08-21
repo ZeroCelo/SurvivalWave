@@ -33,6 +33,22 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void UpdateHUDLife();
 
+	UFUNCTION(BlueprintCallable)
+	void DetectPlayer(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(BlueprintCallable)
+	void UnDetectPlayer(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Life")
-		class ULifeStat* LifeStats;
+	class ULifeStat* LifeStats;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	class USphereComponent* PerceptionSphere;
+
+	//Returns a player in range, if any
+	UFUNCTION(BlueprintCallable)
+	AActor* GetTargetPlayer();
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TMap<int64, AActor*> PlayerActors;
 };

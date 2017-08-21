@@ -3,6 +3,8 @@
 #pragma once
 
 #include "AIController.h"
+#include "EnemyCharacter.h"
+
 #include "AISimpleController.generated.h"
 
 /**
@@ -32,7 +34,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CallCheckDistance();
-		
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
+	AEnemyCharacter* EnemyRef;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
 	FVector Target;
 
@@ -48,9 +53,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	float IdleWaitTimeMax;
 
+	//Time in Seconds for the CheckDistance function to loop
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	float IdleCheckTime;
 
 	FTimerHandle IdleTimer;
-	
 };
