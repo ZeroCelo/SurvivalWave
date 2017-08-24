@@ -66,6 +66,7 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	bfiring = false;
 	bswitching = false;
 	binventory = false;
+	bDead = false;
 	speed_run = 600.0f;
 	speed_normal = 250.0f;
 	fov_normal = 90.0f;
@@ -81,6 +82,7 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	fov_max_time = 1.0f;
 	fov_elapsed = 100.0f;
 	weapon_select = 0;
+	DeathTime = 5.0f;
 	//weapon_select_new = 0;
 	Weapon.Add(nullptr);
 	Weapon.Add(nullptr);
@@ -213,6 +215,7 @@ void ASurvivalWaveCharacter::MoveRight(float Value)
 
 void ASurvivalWaveCharacter::BeginPlay() {
 	Super::BeginPlay();
+	EnableInput(Cast<APlayerController>(GetController()));
 	//Setup the Inventory Widget
 	if (InventoryClass != nullptr) {
 		inventory_widget = CreateWidget<UUserWidget>(GetWorld(), InventoryClass);
@@ -722,6 +725,20 @@ void ASurvivalWaveCharacter::DetectDamage(UPrimitiveComponent* OverlappedComp, A
 {
 	LifeStats->DetectDamage(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	UpdateHUDLife();
+	if (LifeStats->IsDead()) {
+		bDead = true;
+		DisableInput(Cast<APlayerController>(GetController()));
+		if (ItemHUDWidget != nullptr)ItemHUDWidget->RemoveFromParent();
+		if (WeaponHUDWidget != nullptr)WeaponHUDWidget->RemoveFromParent();
+		if (LifeHUDWidget != nullptr)LifeHUDWidget->RemoveFromParent();
+		//GetMesh()->SetSimulatePhysics(true);
+		GetKilled();
+		GetWorld()->GetTimerManager().SetTimer(DeathTimer, this, &ASurvivalWaveCharacter::Death, DeathTime,false);
+	}
+}
+
+void ASurvivalWaveCharacter::Death() {
+	Destroy();
 }
 
 FItem ASurvivalWaveCharacter::GetPickup() {

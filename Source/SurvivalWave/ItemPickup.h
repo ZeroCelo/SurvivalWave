@@ -86,7 +86,6 @@ struct FItem
 		return id;
 	}
 
-	//Work as TMaps Key
 	friend bool operator==(const FItem& first, const FItem& second) {
 		return first.id == second.id;
 	}
@@ -115,7 +114,6 @@ struct FItem
 		id = -1;
 	}
 };
-
 
 UCLASS()
 class SURVIVALWAVE_API AItemPickup : public APickup

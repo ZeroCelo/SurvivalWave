@@ -272,6 +272,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Getter")
 	bool GetReloading() { return bReloading; }
+
+	UFUNCTION(BlueprintCallable, Category = "Getter")
+	bool GetDead() { return bDead; }
 		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bswitching;
@@ -290,6 +293,9 @@ public:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
 	bool bReloading;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
+	bool bDead;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
 	float speed_run;
@@ -358,5 +364,16 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Life")
 	class ULifeStat* LifeStats;
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Life")
+	void GetKilled();
+
+	UFUNCTION(BlueprintCallable, Category = "Life")
+	void Death();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Life")
+	float DeathTime;
+
+	FTimerHandle DeathTimer;
 };
 

@@ -66,10 +66,12 @@ void AWeapon_Instant::DetectDamage(AActor* Act) {
 	if (Enemy != nullptr) {
 		Enemy->LifeStats->TakeDamage(DamageStats);
 		Enemy->UpdateHUDLife();
+		Enemy->DetectDeath();
 	}
 	ASurvivalWaveCharacter* Player = Cast<ASurvivalWaveCharacter>(Act);
 	if (Player != nullptr) {
 		Player->LifeStats->TakeDamage(DamageStats);
 		Player->UpdateHUDLife();
+		//Player->DetectDeath();
 	}
 }

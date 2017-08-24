@@ -44,7 +44,7 @@ void AProjectile::BeginPlay()
 	if (ProjectileFX != nullptr) {
 		ProjectilePSC = UGameplayStatics::SpawnEmitterAttached(ProjectileFX, FXPoint);
 	}
-	StartPosition = this->GetActorLocation();
+	StartPosition = GetActorLocation();
 	/*if (GetOwner() != nullptr) {
 		UDamageStat* Dam = GetOwner()->FindComponentByClass<UDamageStat>();
 		if (Dam != nullptr) {
@@ -57,7 +57,7 @@ void AProjectile::BeginPlay()
 void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	FVector dist = this->GetActorLocation() - StartPosition;
+	FVector dist = GetActorLocation() - StartPosition;
 	float d = dist.Size();
 	if (d > DamageStats->GetDamageRange()) {
 		Impact(GetActorLocation(),GetActorRotation());
@@ -69,7 +69,7 @@ void AProjectile::Impact(FVector location, FRotator rotation) {
 		//UParticleSystemComponent* shot = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),TraceFX,FirePoint->GetComponentLocation(),FirePoint->GetComponentRotation());
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactFX, location, rotation);
 	}
-	this->Destroy();
+	Destroy();
 }
 
 void AProjectile::ProjectileHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {

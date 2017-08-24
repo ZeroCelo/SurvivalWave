@@ -22,20 +22,22 @@ void AAIFollowerController::BeginPlay()
 
 void AAIFollowerController::CheckState() {
 	if (EnemyRef != nullptr) {
-		TargetActor = EnemyRef->GetTargetPlayer();
-		if (TargetActor != nullptr) {
-			bIsIdle = false;
-			GetWorld()->GetTimerManager().ClearTimer(IdleTimer);
-			Target = TargetActor->GetActorLocation();
-			GetWorld()->GetNavigationSystem()->SimpleMoveToLocation(this, Target);
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("GET HIM!!")));
-		}
-		else {
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("No Target")));
-			if (!bIsIdle) {
-				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Finding...")));
-				CallFindTarget();
-				bIsIdle = true;
+		if (!EnemyRef->LifeStats->IsDead()) {
+			TargetActor = EnemyRef->GetTargetPlayer();
+			if (TargetActor != nullptr) {
+				bIsIdle = false;
+				GetWorld()->GetTimerManager().ClearTimer(IdleTimer);
+				Target = TargetActor->GetActorLocation();
+				GetWorld()->GetNavigationSystem()->SimpleMoveToLocation(this, Target);
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("GET HIM!!")));
+			}
+			else {
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("No Target")));
+				if (!bIsIdle) {
+					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Finding...")));
+					CallFindTarget();
+					bIsIdle = true;
+				}
 			}
 		}
 	}
