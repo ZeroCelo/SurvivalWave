@@ -34,6 +34,8 @@ AEnemyCharacter::AEnemyCharacter()
 	DamageBox->OnComponentBeginOverlap.AddDynamic(this, &AEnemyCharacter::DetectAttack);
 	DamageBox->OnComponentEndOverlap.AddDynamic(this, &AEnemyCharacter::UnDetectAttack);
 
+	//GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AEnemyCharacter::DetectDamage);
+
 	DyingTime = 5.0f;
 	AttackInterval = 3.0f;
 	bIsDying = false;
@@ -113,8 +115,10 @@ void AEnemyCharacter::DetectPlayer(UPrimitiveComponent* OverlappedComp, AActor* 
 		int64 add = (int64)(OtherActor);
 		int64 poi = (int64)(&OtherActor);
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Player >>Detect %s %llx %llX"),*play->GetName(),poi,add));
+		
 		if(!PlayerActors.Contains(add))
 			PlayerActors.Add(add,OtherActor);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Player Detected %d"), PlayerActors.Num()));
 	}
 }
 
@@ -136,7 +140,7 @@ void AEnemyCharacter::DoDamage() {
 			SpawnInfo.Owner = this;
 			SpawnInfo.Instigator = Instigator;
 			FVector loc = PlayerActorsAttack.CreateConstIterator()->Value->GetActorLocation();
-			loc.Z += 80.0f;
+			loc.Z += 60.0f;
 			FTransform trans(loc);
 			GetWorld()->SpawnActor<AProjectile>(ProjectileClass, trans, SpawnInfo);
 		}

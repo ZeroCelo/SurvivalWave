@@ -34,12 +34,21 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CallCheckDistance();
+
+	void EnemyRefErrorCheck();
+
+	FTimerHandle RefTimer;
+	FTimerHandle ErrorTimer;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
 	AEnemyCharacter* EnemyRef;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
 	FVector Target;
+
+	//How much time until the AI search for a new target to move. Used to avoid Stuck bugs
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
+	float NewTargetTolerance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	float DistanceMargin;

@@ -139,6 +139,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Item")
 	void CheckLimit();
 	virtual void CheckLimit_Implementation();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void CheckItem();
 	
 	/*
 		Item Types static definitions

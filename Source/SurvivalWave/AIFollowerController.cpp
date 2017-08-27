@@ -2,7 +2,6 @@
 
 #include "SurvivalWave.h"
 #include "AIFollowerController.h"
-#include "EnemyCharacter.h"
 
 #include "EngineGlobals.h"
 
@@ -16,12 +15,13 @@ AAIFollowerController::AAIFollowerController(const FObjectInitializer& ObjectIni
 void AAIFollowerController::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	GetWorld()->GetTimerManager().SetTimer(StateTimer, this, &AAIFollowerController::CheckState, StateTime, true);
 }
 
 void AAIFollowerController::CheckState() {
 	if (EnemyRef != nullptr) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AI Ref...")));
 		if (!EnemyRef->LifeStats->IsDead()) {
 			TargetActor = EnemyRef->GetTargetPlayer();
 			if (TargetActor != nullptr) {

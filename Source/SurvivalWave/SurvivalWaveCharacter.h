@@ -342,7 +342,7 @@ public:
 	TSubclassOf<class UUserWidget> InventoryClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
-	class UUserWidget* inventory_widget;
+	class UUserWidget* InventoryWidget;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HUD")
 	TSubclassOf<class UUserWidget> LifeHUDClass;

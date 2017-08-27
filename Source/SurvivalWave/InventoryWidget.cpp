@@ -275,7 +275,7 @@ void UInventoryWidget::MoveItemList(int32 source, int32 destiny) {
 		if (sourceItem.type != destinyItem.type) {	//Case 4
 			int32 foundIndexSrc = ItemMapList[sourceItem.type].Find(destiny);
 			int32 foundIndexDst = ItemMapList[destinyItem.type].Find(source);
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Src %d Dst %d"), foundIndexSrc,foundIndexDst));
+			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Src %d Dst %d"), foundIndexSrc,foundIndexDst));
 			if (foundIndexSrc != INDEX_NONE)	
 				ItemMapList[sourceItem.type].RemoveAt(foundIndexSrc);
 			if (foundIndexDst != INDEX_NONE)

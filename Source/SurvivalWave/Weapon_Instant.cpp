@@ -64,14 +64,18 @@ void AWeapon_Instant::DetectDamage(AActor* Act) {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Weapon Detect")));
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Act);
 	if (Enemy != nullptr) {
-		Enemy->LifeStats->TakeDamage(DamageStats);
-		Enemy->UpdateHUDLife();
-		Enemy->DetectDeath();
+		if (!Enemy->IsPendingKill()) {
+			Enemy->LifeStats->TakeDamage(DamageStats);
+			Enemy->UpdateHUDLife();
+			Enemy->DetectDeath();
+		}
 	}
 	ASurvivalWaveCharacter* Player = Cast<ASurvivalWaveCharacter>(Act);
-	if (Player != nullptr) {
-		Player->LifeStats->TakeDamage(DamageStats);
-		Player->UpdateHUDLife();
-		//Player->DetectDeath();
+	if (Player != nullptr ) {
+		if (!Player->IsPendingKill()) {
+			Player->LifeStats->TakeDamage(DamageStats);
+			Player->UpdateHUDLife();
+			//Player->DetectDeath();
+		}
 	}
 }

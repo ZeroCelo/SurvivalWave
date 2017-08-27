@@ -54,7 +54,7 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	this->AddOwnedComponent(LifeStats);
 	//LifeStats->SetupAttachment(RootComponent);
 
-	//GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ASurvivalWaveCharacter::DetectDamage);
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ASurvivalWaveCharacter::DetectDamage);
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -218,10 +218,10 @@ void ASurvivalWaveCharacter::BeginPlay() {
 	EnableInput(Cast<APlayerController>(GetController()));
 	//Setup the Inventory Widget
 	if (InventoryClass != nullptr) {
-		inventory_widget = CreateWidget<UUserWidget>(GetWorld(), InventoryClass);
-		if (inventory_widget != nullptr) {
-			inventory_widget->AddToViewport();
-			inventory_widget->RemoveFromParent();
+		InventoryWidget = CreateWidget<UUserWidget>(GetWorld(), InventoryClass);
+		if (InventoryWidget != nullptr) {
+			InventoryWidget->AddToViewport();
+			InventoryWidget->RemoveFromParent();
 		}
 		//if (gameHUD != nullptr) gameHUD->AddToViewport();
 	}
@@ -262,8 +262,8 @@ void ASurvivalWaveCharacter::BeginPlay() {
 			Weapon[i] = GetWorld()->SpawnActor<AWeapon>(WeaponClassInit[i]);
 			int32 weapon_i = i - 1;
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Setup Weapon UI try")));
-			if (inventory_widget != nullptr) {
-				UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
+			if (InventoryWidget != nullptr) {
+				UInventoryWidget* itemUI = Cast<UInventoryWidget>(InventoryWidget);
 				if (itemUI != nullptr) {
 					if (weapon_i < itemUI->Weapons.Num() && weapon_i >= 0) {
 						itemUI->Weapons[weapon_i].id = 1;
@@ -512,7 +512,7 @@ void ASurvivalWaveCharacter::DropGunPress() {
 	if (CanDropGun()) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("DropGun Try")));
 		if (weapon_select > 0) {
-			UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
+			UInventoryWidget* itemUI = Cast<UInventoryWidget>(InventoryWidget);
 			if (itemUI != nullptr) {
 				itemUI->Weapons[weapon_select - 1].quantity = Weapon[weapon_select]->GetWeaponAmmo();
 				itemUI->Weapons[weapon_select - 1].limit = Weapon[weapon_select]->GetWeaponAmmo();
@@ -539,7 +539,7 @@ void ASurvivalWaveCharacter::ReloadGunPress() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reload")));
 	if (CanReloadGun()) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Reloading...")));
-		UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
+		UInventoryWidget* itemUI = Cast<UInventoryWidget>(InventoryWidget);
 		if (Weapon[weapon_select] != nullptr && itemUI != nullptr) {
 			int32 ammo_sum = itemUI->GetItemSum(Weapon[weapon_select]->GetWeaponAmmoType());
 			if (Weapon[weapon_select]->ShouldReload() && Weapon[weapon_select]->IsReloadInfinite()) {
@@ -582,7 +582,7 @@ void ASurvivalWaveCharacter::InteractPress() {
 		if (items.Num()) {	//Have item to pickup
 			FItem it = items.CreateConstIterator()->Value;
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Item id%d quant%d limit%d type:%s"), it.id,it.quantity, it.limit, *FItem::GetItemEnumAsString(it.type)));
-			UInventoryWidget* itemUI = Cast<UInventoryWidget>(inventory_widget);
+			UInventoryWidget* itemUI = Cast<UInventoryWidget>(InventoryWidget);
 			if (itemUI != nullptr) {
 				FString str = FItem::GetItemEnumAsString(it.type);
 				if (str.Contains("Gun")) {
@@ -728,6 +728,7 @@ void ASurvivalWaveCharacter::DetectDamage(UPrimitiveComponent* OverlappedComp, A
 	if (LifeStats->IsDead()) {
 		bDead = true;
 		DisableInput(Cast<APlayerController>(GetController()));
+		if (InventoryWidget != nullptr)InventoryWidget->RemoveFromParent();
 		if (ItemHUDWidget != nullptr)ItemHUDWidget->RemoveFromParent();
 		if (WeaponHUDWidget != nullptr)WeaponHUDWidget->RemoveFromParent();
 		if (LifeHUDWidget != nullptr)LifeHUDWidget->RemoveFromParent();
