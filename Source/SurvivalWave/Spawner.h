@@ -65,6 +65,9 @@ public:
 
 	int32 CurrentSpawnCount;
 
+	bool IsActive();
+	bool IsInfinite();
+
 	//Handle the spawning of new pickup
 	void SpawnActor();
 

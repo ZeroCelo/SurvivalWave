@@ -5,6 +5,7 @@
 #include "EnemyCharacter.h"
 #include "SurvivalWaveCharacter.h"
 #include "Weapon_Instant.h"
+#include "AISimpleController.h"
 
 AWeapon_Instant::AWeapon_Instant() :Super() {
 	LastFireTime = 0.0f;
@@ -68,6 +69,10 @@ void AWeapon_Instant::DetectDamage(AActor* Act) {
 			Enemy->LifeStats->TakeDamage(DamageStats);
 			Enemy->UpdateHUDLife();
 			Enemy->DetectDeath();
+			AAISimpleController* con = Cast<AAISimpleController>(Enemy->GetController());
+			if (con != nullptr) {
+				con->SuspiciousTarget(this);
+			}
 		}
 	}
 	ASurvivalWaveCharacter* Player = Cast<ASurvivalWaveCharacter>(Act);

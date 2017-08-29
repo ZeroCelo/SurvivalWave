@@ -71,6 +71,14 @@ void ASpawner::PostSpawnActor(AActor* Act) {
 
 }
 
+bool ASpawner::IsActive() {
+	return CurrentSpawnCount < MaxSpawnCount;
+}
+
+bool ASpawner::IsInfinite() {
+	return MaxSpawnCount < 0;
+}
+
 void ASpawner::SpawnActor() {
 	bool canSpawn = (MaxSpawnCount < 0 || CurrentSpawnCount < MaxSpawnCount);
 

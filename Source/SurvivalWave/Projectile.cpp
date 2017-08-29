@@ -5,6 +5,9 @@
 #include "Weapon_Projectile.h"
 #include "SurvivalWaveCharacter.h"
 #include "EnemyCharacter.h"
+#include "AISimpleController.h"
+
+//#include "EngineGlobals.h"
 
 
 // Sets default values
@@ -29,6 +32,10 @@ AProjectile::AProjectile()
 	DamageStats = CreateDefaultSubobject<UDamageStat>(TEXT("DamageComponent"));
 	this->AddOwnedComponent(DamageStats);
 
+	AreaDamageTime = 0.050f;
+	bAreaDamage = false;
+	bDestroying = false;
+
 	//ProjectileMove->SetUpdatedComponent(RootComponent);
 
 	//WeaponParent = nullptr;
@@ -45,12 +52,7 @@ void AProjectile::BeginPlay()
 		ProjectilePSC = UGameplayStatics::SpawnEmitterAttached(ProjectileFX, FXPoint);
 	}
 	StartPosition = GetActorLocation();
-	/*if (GetOwner() != nullptr) {
-		UDamageStat* Dam = GetOwner()->FindComponentByClass<UDamageStat>();
-		if (Dam != nullptr) {
-			DamageStats->CopyDamage(Dam);
-		}
-	}*/
+	
 }
 
 // Called every frame
@@ -64,26 +66,49 @@ void AProjectile::Tick(float DeltaTime)
 	}
 }
 
+bool AProjectile::DoesAreaDamage() {
+	return bAreaDamage;
+}
+
+void AProjectile::LateDestroy() {
+	Destroy();
+}
+
 void AProjectile::Impact(FVector location, FRotator rotation) {
 	if (ImpactFX != nullptr) {
 		//UParticleSystemComponent* shot = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),TraceFX,FirePoint->GetComponentLocation(),FirePoint->GetComponentRotation());
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactFX, location, rotation);
 	}
-	Destroy();
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("ImpactTime %f"), GetWorld()->GetTimeSeconds()));
+	if (!bAreaDamage) {
+		if (AreaProjectileClass != nullptr) {
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.Owner = GetOwner();
+			SpawnInfo.Instigator = Instigator;
+			//AProjectile* proj = 
+			GetWorld()->SpawnActor<AProjectile>(AreaProjectileClass, GetActorLocation(), GetActorRotation(), SpawnInfo);
+		}
+		Destroy();
+	}
+	else {
+		//bDestroying = true;
+		//if (!bDestroying) {
+			GetWorld()->GetTimerManager().SetTimer(AreaTimer, this, &AProjectile::LateDestroy, AreaDamageTime, false);
+		//}
+	}
 }
 
 void AProjectile::ProjectileHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	Impact(CollisionSphere->GetComponentLocation(), CollisionSphere->GetComponentRotation());
-	//ImpactCheck(OtherActor);
-	/*AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(OtherActor);
-	if (Enemy != nullptr) {
-		Enemy->LifeStats->TakeDamage(DamageStats);
-		//Enemy->LifeStats->TakeDamageMultiplier(20.0f,1.0f);
-		Enemy->UpdateHUDLife();
+	if (bAreaDamage) {
+		ACharacter* cha = Cast<ACharacter>(OtherActor);
+		if (ImpactFX != nullptr && cha != nullptr) {
+			//UParticleSystemComponent* shot = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),TraceFX,FirePoint->GetComponentLocation(),FirePoint->GetComponentRotation());
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactFX, OtherActor->GetActorLocation());
+			AAISimpleController* con = Cast<AAISimpleController>(cha->GetController());
+			if (con != nullptr) {
+				con->SuspiciousTarget(GetOwner());
+			}
+		}
 	}
-	ASurvivalWaveCharacter* Player = Cast<ASurvivalWaveCharacter>(OtherActor);
-	if (Player != nullptr) {
-		Player->LifeStats->TakeDamage(DamageStats);
-		Player->UpdateHUDLife();
-	}*/
 }

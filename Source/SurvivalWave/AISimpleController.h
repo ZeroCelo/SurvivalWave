@@ -35,6 +35,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CallCheckDistance();
 
+	UFUNCTION(BlueprintCallable)
+	void SuspiciousTarget(AActor* other);
+
 	void EnemyRefErrorCheck();
 
 	FTimerHandle RefTimer;

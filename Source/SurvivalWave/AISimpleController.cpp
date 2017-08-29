@@ -12,7 +12,7 @@ AAISimpleController::AAISimpleController(const FObjectInitializer& ObjectInitial
 	IdleWaitTimeMax = 4.0f;
 	DistanceMargin = 200.0f;
 	DistanceFindRadius = 1000.0f;
-	NewTargetTolerance = 8.0f;
+	NewTargetTolerance = 10.0f;
 	EnemyRef = nullptr;
 }
 
@@ -42,7 +42,8 @@ void AAISimpleController::FindRandomTarget() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Enemy Finding...")));
 	FNavLocation Result;
 	FVector ActorLocation = GetPawn()->GetActorLocation();
-	GetWorld()->GetNavigationSystem()->GetRandomPointInNavigableRadius(ActorLocation, DistanceFindRadius, Result);
+	//GetWorld()->GetNavigationSystem()->GetRandomPointInNavigableRadius(ActorLocation, DistanceFindRadius, Result);
+	GetWorld()->GetNavigationSystem()->GetRandomReachablePointInRadius(ActorLocation, DistanceFindRadius, Result);
 	Target = Result.Location;
 	GetWorld()->GetNavigationSystem()->SimpleMoveToLocation(this, Target);
 	CallCheckDistance();
@@ -69,4 +70,12 @@ void AAISimpleController::CallFindTarget() {
 	GetWorld()->GetTimerManager().ClearTimer(IdleTimer);
 	GetWorld()->GetTimerManager().ClearTimer(ErrorTimer);
 	GetWorld()->GetTimerManager().SetTimer(IdleTimer, this, &AAISimpleController::FindRandomTarget, TimeToWait, false);
+}
+
+void AAISimpleController::SuspiciousTarget(AActor* other) {
+	if (other != nullptr) {
+		Target = other->GetActorLocation();
+		GetWorld()->GetNavigationSystem()->SimpleMoveToLocation(this, Target);
+		CallCheckDistance();
+	}
 }
