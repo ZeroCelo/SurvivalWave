@@ -31,4 +31,5 @@ public:
 	class UItemDropStat* DropStats;
 	
 	virtual void PostSpawnActor(AActor* Act);
+	void SpawnPoints();
 };

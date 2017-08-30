@@ -20,10 +20,22 @@ ASurvivalWaveGameMode::ASurvivalWaveGameMode()
 	MaxWave = 2;
 	CheckTime = 0.10f;
 	PreWaveTime = 2.0f;
+	LevelEndTime = 6.0f;
 	WaveTimeCount = 0.0f;
 	WaveTimeStart = 3.0f;
 	Score = 0;
 	StartState = EWaveState::ELobby;
+	MsgLobby = MsgLobby.FromString("Game Start");
+	MsgWaveStart = MsgWaveStart.FromString("Fight to Survive");
+	MsgWaveBegin = MsgWaveBegin.FromString("Ready");
+	MsgLevelFinish = MsgLevelFinish.FromString("Legends Never Die");
+	MsgLevelEnd = MsgLevelEnd.FromString("GG WP");
+	MsgWavePrefix = MsgWavePrefix.FromString("Wave ");
+	MsgWaveSuffix = MsgWaveSuffix.FromString(" End");
+	LastDoorName = "WaveEndDoor";
+	LobbyDoorName = "WaveLobbyDoor";
+	LobbyDoor = nullptr;
+	LastDoor = nullptr;
 }
 
 void ASurvivalWaveGameMode::BeginPlay(){
@@ -32,13 +44,17 @@ void ASurvivalWaveGameMode::BeginPlay(){
 	//Get Spawners
 	TArray<AActor*> FoundSpawners;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawner::StaticClass(), FoundSpawners);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Spawn %d"),FoundSpawners.Num()));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Spawn %d"),FoundSpawners.Num()));
 	for (auto Actor : FoundSpawners) {
 		ASpawner* SpawnVolumeActor = Cast<ASpawner>(Actor);
 		if (SpawnVolumeActor != nullptr) {
 			if (SpawnVolumeActor->GetName().Contains("SpawnerLevel")) {
 				SpawnEnemy.AddUnique(SpawnVolumeActor);
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Found Spawn %s"), *SpawnVolumeActor->GetName()));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Found Spawn %s"), *SpawnVolumeActor->GetName()));
+			}
+			else if (SpawnVolumeActor->GetName().Contains("SpawnerCoin")) {
+				AItemSpawner* ite = Cast<AItemSpawner>(Actor);
+				SpawnLoot.AddUnique(ite);
 			}
 		}
 	}
@@ -48,13 +64,19 @@ void ASurvivalWaveGameMode::BeginPlay(){
 	//Get Doors
 	TArray<AActor*> FoundDoors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ALevelDoor::StaticClass(), FoundDoors);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Door %d"), FoundDoors.Num()));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Door %d"), FoundDoors.Num()));
 	for (auto Actor : FoundDoors) {
 		ALevelDoor* DoorActor = Cast<ALevelDoor>(Actor);
 		if (DoorActor != nullptr) {
-			if (DoorActor->GetName().Contains("WaveDoor")) {
+			if (DoorActor->GetName().Contains(LobbyDoorName)) {
+				LobbyDoor = DoorActor;
+			}
+			else if (DoorActor->GetName().Contains(LastDoorName)) {
+				LastDoor = DoorActor;
+			}
+			else if (DoorActor->GetName().Contains("WaveDoor")) {
 				LevelDoors.AddUnique(DoorActor);
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Found Door %s"), *DoorActor->GetName()));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Found Door %s"), *DoorActor->GetName()));
 			}
 		}
 	}
@@ -159,15 +181,15 @@ void ASurvivalWaveGameMode::UpdateInfo(FString Info) {
 }
 
 void ASurvivalWaveGameMode::LobbyWait() {
-	if (LevelDoors.Num()) {
-		if (!LevelDoors[CurrentWave]->IsDoorActive()) {
+	if (LobbyDoor != nullptr) {
+		if (!LobbyDoor->IsDoorActive()) {
 			SetCurrentState(EWaveState::EWaveBegin);
 		}
 	}
 }
 
 void ASurvivalWaveGameMode::Lobby() {
-	UpdateInfo(FString("Game Start"));
+	UpdateInfo(MsgLobby.ToString());
 	GetWorld()->GetTimerManager().SetTimer(CheckTimer, this, &ASurvivalWaveGameMode::LobbyWait, CheckTime, true);
 }
 
@@ -180,31 +202,51 @@ void ASurvivalWaveGameMode::PreWaveStart() {
 		WaveTimeCount += 1.0f;
 	}
 	else {
+		WaveTimeCount = 0.0f;
 		WaveStart();
 	}
 }
 
 void ASurvivalWaveGameMode::WaveStart() {
-	UpdateInfo("Fight to Survive");
+	UpdateInfo(MsgWaveStart.ToString());
 	SpawnEnemy[CurrentWave]->SetSpawningActive(true);
 	SetCurrentState(EWaveState::EWaiting);
+}
+
+void ASurvivalWaveGameMode::WaveWait() {
+	if (LevelDoors.Num()) {
+		if (!LevelDoors[CurrentWave - 1]->IsDoorActive()) {
+			SetCurrentState(EWaveState::EWaveBegin);
+		}
+	}
 }
 
 void ASurvivalWaveGameMode::BeginWave() {
 	GetWorld()->GetTimerManager().ClearTimer(CheckTimer);
 	GetWorld()->GetTimerManager().SetTimer(CheckTimer, this, &ASurvivalWaveGameMode::PreWaveStart, PreWaveTime, false);
-	UpdateInfo("Ready");
+	UpdateInfo(MsgWaveBegin.ToString());
 }
 
 void ASurvivalWaveGameMode::LevelFinish() {
-	UpdateInfo("Legends Never Die");
+	UpdateInfo(MsgLevelFinish.ToString());
+	GetWorld()->GetTimerManager().ClearTimer(CheckTimer);
+	GetWorld()->GetTimerManager().SetTimer(CheckTimer, this, &ASurvivalWaveGameMode::CheckFinish, CheckTime, true);
+}
+
+void ASurvivalWaveGameMode::CheckFinish() {
+	if (LastDoor != nullptr) {
+		if (!LastDoor->IsDoorActive()) {
+			UpdateInfo(MsgLevelEnd.ToString());
+			for (int i = 0; i < SpawnLoot.Num(); i++) {
+				SpawnLoot[i]->SpawnPoints();
+			}
+			GetWorld()->GetTimerManager().ClearTimer(CheckTimer);
+			GetWorld()->GetTimerManager().SetTimer(CheckTimer, this, &ASurvivalWaveGameMode::GameEnd, LevelEndTime, false);
+		}
+	}
 }
 
 void ASurvivalWaveGameMode::GameOver() {
-
-}
-
-void ASurvivalWaveGameMode::GameEnd() {
 
 }
 
@@ -226,19 +268,19 @@ void ASurvivalWaveGameMode::WaveWaiting() {
 
 	}
 	else if (bWaveDone) {
-		FString info("Wave ");
+		FString info(MsgWavePrefix.ToString());
 		CurrentWave++;
 		info.AppendInt(CurrentWave);
-		info += " Done";
+		info += MsgWaveSuffix.ToString();
 		UpdateInfo(info);
 		if (CurrentWave < MaxWave) {
 			GetWorld()->GetTimerManager().ClearTimer(CheckTimer);
-			GetWorld()->GetTimerManager().SetTimer(CheckTimer, this, &ASurvivalWaveGameMode::LobbyWait, CheckTime, true);
-			LevelDoors[CurrentWave]->SetDoorActive(true);
+			GetWorld()->GetTimerManager().SetTimer(CheckTimer, this, &ASurvivalWaveGameMode::WaveWait, CheckTime, true);
+			LevelDoors[CurrentWave - 1]->SetDoorActive(true);
 		}
 		else {
 			GetWorld()->GetTimerManager().ClearTimer(CheckTimer);
-			LevelDoors[CurrentWave]->SetDoorActive(true);
+			LastDoor->SetDoorActive(true);
 			SetCurrentState(EWaveState::ELevelFinish);
 		}
 	}

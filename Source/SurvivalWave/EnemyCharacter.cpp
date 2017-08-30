@@ -39,6 +39,7 @@ AEnemyCharacter::AEnemyCharacter()
 	DyingTime = 5.0f;
 	AttackInterval = 3.0f;
 	bIsDying = false;
+	
 }
 
 // Called when the game starts or when spawned
@@ -84,6 +85,7 @@ void AEnemyCharacter::DropItems() {
 			DropItem(Trans,ite);
 		}
 	}
+	DropStats->DropPoints();
 }
 
 void AEnemyCharacter::DetectDeath() {
@@ -118,7 +120,7 @@ void AEnemyCharacter::DetectPlayer(UPrimitiveComponent* OverlappedComp, AActor* 
 		
 		if(!PlayerActors.Contains(add))
 			PlayerActors.Add(add,OtherActor);
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Player Detected %d"), PlayerActors.Num()));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Player Detected %d"), PlayerActors.Num()));
 	}
 }
 

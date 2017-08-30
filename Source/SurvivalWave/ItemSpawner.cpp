@@ -32,3 +32,7 @@ void AItemSpawner::PostSpawnActor(AActor* Act) {
 		Pickup->CheckItem();
 	}
 }
+
+void AItemSpawner::SpawnPoints() {
+	DropStats->DropPoints();
+}

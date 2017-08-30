@@ -1,7 +1,7 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameFramework/GameModeBase.h"
-#include "Spawner.h"
+#include "ItemSpawner.h"
 #include "LevelDoor.h"
 
 #include "SurvivalWaveGameMode.generated.h"
@@ -51,6 +51,10 @@ public:
 
 	TArray<class ASpawner*> SpawnEnemy;
 	TArray<class ALevelDoor*> LevelDoors;
+	TArray<class AItemSpawner*> SpawnLoot;
+
+	ALevelDoor* LobbyDoor;
+	ALevelDoor* LastDoor;
 
 	int32 CurrentWave;
 	int32 Score;
@@ -67,9 +71,41 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameConfig")
 	float WaveTimeStart;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameConfig")
+	float LevelEndTime;
+
+	//Name of the Actor for the First Door the player faces
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	FString LobbyDoorName;
+
+	//Name of the Actor for the Last Door of the whole level
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	FString LastDoorName;
+
 	float WaveTimeCount;
 
 	FTimerHandle CheckTimer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	FText MsgLobby;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	FText MsgWaveStart;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	FText MsgWaveBegin;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	FText MsgLevelFinish;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	FText MsgLevelEnd;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	FText MsgWavePrefix;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	FText MsgWaveSuffix;	
 
 	void UpdateInfo(FString Info);
 
@@ -83,12 +119,17 @@ public:
 	void LobbyWait();
 
 	void BeginWave();
+	void WaveWait();
 	void PreWaveStart();
 	void WaveStart();
 	
 	void LevelFinish();
+	void CheckFinish();
 	void GameOver();
+	
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void GameEnd();
+	//void GameEnd_Implementation();
 	
 	void BeginWait();
 	void WaveWaiting();

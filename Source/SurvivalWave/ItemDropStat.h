@@ -106,6 +106,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FItem GetDropItem();
 
+	UFUNCTION(BlueprintCallable)
+	void DropPoints();
+
 	//Maximum Probability(Pts) of something/nothing to be dropped
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxChance;
@@ -121,5 +124,10 @@ public:
 	//Chances of the Items Quantity to be dropped, Uses QuantityMax and ChancePoints only
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FItemData> ItemsQuantity;
-		
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AActor> ScoreActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ScoreDropCount;
 };
