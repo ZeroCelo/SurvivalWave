@@ -49,7 +49,9 @@ void AProjectile::BeginPlay()
 	Super::BeginPlay();
 	
 	if (ProjectileFX != nullptr) {
-		ProjectilePSC = UGameplayStatics::SpawnEmitterAttached(ProjectileFX, FXPoint);
+		//if(FXPoint == nullptr)
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("ImpactNull")));
+		ProjectilePSC = UGameplayStatics::SpawnEmitterAttached(ProjectileFX, RootComponent);
 	}
 	StartPosition = GetActorLocation();
 	
@@ -86,7 +88,8 @@ void AProjectile::Impact(FVector location, FRotator rotation) {
 			SpawnInfo.Owner = GetOwner();
 			SpawnInfo.Instigator = Instigator;
 			//AProjectile* proj = 
-			GetWorld()->SpawnActor<AProjectile>(AreaProjectileClass, GetActorLocation(), GetActorRotation(), SpawnInfo);
+			//GetWorld()->SpawnActor<AProjectile>(AreaProjectileClass, GetActorLocation(), GetActorRotation(), SpawnInfo);
+			GetWorld()->SpawnActor<AProjectile>(AreaProjectileClass, location, rotation, SpawnInfo);
 		}
 		Destroy();
 	}

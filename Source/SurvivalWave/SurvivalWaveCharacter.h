@@ -115,6 +115,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Cam")
 	void UpdateCam(float DeltaTime);
 
+	UFUNCTION(BlueprintCallable, Category = "Cam")
+	void UpdateDeathCam(float DeltaTime);
+
 	//Event to check the player state(Aiming,running....) and update camera accordingly
 	UFUNCTION(BlueprintCallable, Category = "Cam")
 	void CheckCam();
@@ -274,7 +277,7 @@ public:
 	bool GetReloading() { return bReloading; }
 
 	UFUNCTION(BlueprintCallable, Category = "Getter")
-	bool GetDead() { return bDead; }
+	bool IsDead() { return bDead; }
 		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bswitching;

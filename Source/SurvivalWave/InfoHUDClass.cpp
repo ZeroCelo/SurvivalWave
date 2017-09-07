@@ -12,3 +12,7 @@ void UInfoHUDClass::SetInfo(FString Info) {
 	InfoUpdate();
 }
 
+void UInfoHUDClass::SetError(FString Info) {
+	ErrorMsg = FText::FromString(Info);
+	ErrorUpdate();
+}

@@ -6,6 +6,7 @@
 #include "TestWeapon.h"
 #include "Runtime/UMG/Public/UMG.h"
 #include "Blueprint/UserWidget.h"
+#include "Kismet/KismetMathLibrary.h"
 
 //#include "EngineGlobals.h"
 #include "Engine.h"
@@ -283,6 +284,7 @@ void ASurvivalWaveCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateCam(DeltaTime);
+	UpdateDeathCam(DeltaTime);
 	//UpdateFOV(DeltaTime);
 	//UpdateCamPos(DeltaTime);
 }
@@ -625,7 +627,6 @@ void ASurvivalWaveCharacter::ChangeCam(FVector new_pos, float new_fov) {
 
 void ASurvivalWaveCharacter::CheckCam() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Vel %f,%f,%f"), GetVelocity().X,GetVelocity().Y, GetVelocity().Z));
-	//float cur_speed = FVector::DotProduct(vel_temp, GetActorRotation().Vector());
 
 	if (baiming && !brunning) {
 		ChangeCam(cam_aim, fov_aim);
@@ -646,6 +647,25 @@ void ASurvivalWaveCharacter::CheckCam() {
 	}
 	else {
 		ChangeCam(cam_normal, fov_normal);
+	}
+}
+
+void ASurvivalWaveCharacter::UpdateDeathCam(float DeltaTime) {
+	if (IsDead()) {
+		if (fov_elapsed < fov_max_time) {
+			FVector CamPos(0.0f, 0.0f, 250.0f);
+			FVector CamBoomPos(0.0f, 0.0f, 100.0f);
+			FVector part = CamPos - FollowCamera->GetRelativeTransform().GetTranslation();
+			FVector part2 = CamBoomPos - CameraBoom->GetRelativeTransform().GetTranslation();
+			part /= fov_max_time;
+			part2 /= fov_max_time;
+			float remain = fov_elapsed / fov_max_time;
+			FollowCamera->SetRelativeLocation(FollowCamera->GetRelativeTransform().GetTranslation() + remain*part);
+			CameraBoom->SetRelativeLocation(CameraBoom->GetRelativeTransform().GetTranslation() + remain*part2);
+			FRotator rot = UKismetMathLibrary::FindLookAtRotation(CamPos, GetMesh()->GetRelativeTransform().GetTranslation());
+			FollowCamera->SetRelativeRotation(rot);
+			fov_elapsed += DeltaTime;
+		}
 	}
 }
 
@@ -690,10 +710,8 @@ void ASurvivalWaveCharacter::PickupDetectionEnter(UPrimitiveComponent* Overlappe
 			items_actor.Add(item_id,item);
 		}
 	}
-	//if (items.Num() > 0 && CanInteract()) {
 	UpdateHUDItem();
 	ShowHUDItem();
-	//}
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Pickup Enter %s"),*str));
 	
 }

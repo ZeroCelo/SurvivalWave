@@ -4,6 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "Weapon.h"
+#include "Components/ArrowComponent.h"
 
 #include "Projectile.generated.h"
 

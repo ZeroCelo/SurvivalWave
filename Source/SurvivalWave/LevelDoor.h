@@ -42,14 +42,74 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UArrowComponent* Origin;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mecanism")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DoorMecanism")
 	int32 PlayerNear;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mecanism")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DoorMecanism")
 	bool bActive;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mecanism")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "DoorMecanism")
+	bool bDoorClosed;
+
+	//Make Door Never Lock
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DoorMecanism")
 	bool bOpenBothSides;
+
+	//If Door should wait for a level to load
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DoorMecanism")
+	bool bWaitLevel;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DoorMecanism")
+	bool bLevelLoaded;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DoorMecanism")
+	bool bLevelShouldUnload;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DoorMecanism")
+	int32 NextRoomIndex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DoorMecanism")
+	FString LevelStreamName;
+
+	UFUNCTION(BlueprintCallable)
+	FString GetLevelName();
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetNextRoomIndex();
+
+	//Checks wich direction the player exit, -1 returns if not a SurvivalWaveCharacter, [0 .. 1.45] == front exit
+	UFUNCTION(BlueprintCallable)
+	float CheckActorDirection(AActor* Other);
+	
+	UFUNCTION(BlueprintCallable)
+	bool IsDoorClosed();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsDoorActive();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsDoorWaiting();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsDoorLevelLoaded();
+
+	UFUNCTION(BlueprintCallable)
+	bool ShouldLevelUnload();
+
+	UFUNCTION(BlueprintCallable)
+	void SetLevelUnload(bool bnew);
+
+	UFUNCTION(BlueprintCallable)
+	void SetDoorActive(bool bnew);
+
+	UFUNCTION(BlueprintCallable)
+	void SetLevelLoaded(bool bnew);
+
+	UFUNCTION(BlueprintCallable)
+	void SetWaitLevel(bool bnew);
+
+	UFUNCTION(BlueprintCallable)
+	void CheckPlayer(AActor* Other);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetupActive();
@@ -59,15 +119,6 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void CloseDoor();
-
-	UFUNCTION(BlueprintCallable)
-	bool IsDoorActive();
-
-	UFUNCTION(BlueprintCallable)
-	void SetDoorActive(bool bnew);
-
-	UFUNCTION(BlueprintCallable)
-	void CheckPlayer(AActor* Other);
 
 	UFUNCTION(BlueprintCallable)
 	void DetectPlayer(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

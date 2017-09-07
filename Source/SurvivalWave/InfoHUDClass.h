@@ -20,10 +20,19 @@ public:
 	UPROPERTY(VisibleAnywhere,BlueprintReadWrite)
 	FText InfoMsg;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FText ErrorMsg;
+
 	UFUNCTION(BlueprintCallable)
 	void SetInfo(FString Info);
 
+	UFUNCTION(BlueprintCallable)
+	void SetError(FString Info);
+
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void InfoUpdate();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void ErrorUpdate();
 	
 };
