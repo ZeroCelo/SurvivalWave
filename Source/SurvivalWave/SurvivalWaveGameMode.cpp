@@ -24,6 +24,7 @@ ASurvivalWaveGameMode::ASurvivalWaveGameMode()
 	LoadedRooms.Add(0);
 	PreWaveTime = 2.0f;
 	LevelEndTime = 6.0f;
+	LevelGameOverTime = 8.0f;
 	WaveTimeCount = 0.0f;
 	WaveTimeStart = 3.0f;
 	Score = 0;
@@ -34,6 +35,7 @@ ASurvivalWaveGameMode::ASurvivalWaveGameMode()
 	MsgWaveBegin = MsgWaveBegin.FromString("Ready");
 	MsgLevelFinish = MsgLevelFinish.FromString("Legends Never Die");
 	MsgLevelEnd = MsgLevelEnd.FromString("GG WP");
+	MsgGameOver = MsgLevelEnd.FromString("GG EZ");
 	MsgWavePrefix = MsgWavePrefix.FromString("Wave ");
 	MsgWaveSuffix = MsgWaveSuffix.FromString(" End");
 	LobbyRoomIndex = 0;
@@ -362,15 +364,23 @@ void ASurvivalWaveGameMode::CheckFinish() {
 }
 
 void ASurvivalWaveGameMode::GameOver() {
-	//Spanw volumes inactive
-	//for (ASpawnVolume* Volume : SpawnVolumeActors) {
-	//Volume->SetSpawningActive(false);
-	//}
+	UpdateInfo(MsgGameOver.ToString());
+
+	GetWorld()->GetTimerManager().ClearTimer(CheckTimer);
+	GetWorld()->GetTimerManager().SetTimer(CheckTimer, this, &ASurvivalWaveGameMode::CallGameEnd, LevelGameOverTime, false);
+	
 	//Block player input
-	/*APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	if (PlayerController) {
-	PlayerController->SetCinematicMode(true, false, false, true, true);
-	}*/
+	//APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	ASurvivalWaveCharacter* play = Cast<ASurvivalWaveCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	if (play != nullptr) {
+		//PlayerController->SetCinematicMode(true, false, false, true, true);
+		APlayerController* PlayerController = Cast<APlayerController>(play->GetController());
+		play->DisableInput(PlayerController);
+	}
+	
+	DeathAnim();
+
+	
 }
 
 void ASurvivalWaveGameMode::BeginWait() {
@@ -390,8 +400,13 @@ void ASurvivalWaveGameMode::WaveWaiting() {
 		}
 	}
 
-	if (bPlayerDead) {
+	ASurvivalWaveCharacter* play = Cast<ASurvivalWaveCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
+	if (play != nullptr)
+		bPlayerDead = play->LifeStats->IsDead();
+
+	if (bPlayerDead) {
+		SetCurrentState(EWaveState::EGameOver);
 	}
 	else if (bWaveDone) {
 		FString info(MsgWavePrefix.ToString());

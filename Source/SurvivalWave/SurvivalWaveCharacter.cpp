@@ -67,7 +67,6 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	bfiring = false;
 	bswitching = false;
 	binventory = false;
-	bDead = false;
 	speed_run = 600.0f;
 	speed_normal = 250.0f;
 	fov_normal = 90.0f;
@@ -284,7 +283,7 @@ void ASurvivalWaveCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateCam(DeltaTime);
-	UpdateDeathCam(DeltaTime);
+	//UpdateDeathCam(DeltaTime);
 	//UpdateFOV(DeltaTime);
 	//UpdateCamPos(DeltaTime);
 }
@@ -650,25 +649,6 @@ void ASurvivalWaveCharacter::CheckCam() {
 	}
 }
 
-void ASurvivalWaveCharacter::UpdateDeathCam(float DeltaTime) {
-	if (IsDead()) {
-		if (fov_elapsed < fov_max_time) {
-			FVector CamPos(0.0f, 0.0f, 250.0f);
-			FVector CamBoomPos(0.0f, 0.0f, 100.0f);
-			FVector part = CamPos - FollowCamera->GetRelativeTransform().GetTranslation();
-			FVector part2 = CamBoomPos - CameraBoom->GetRelativeTransform().GetTranslation();
-			part /= fov_max_time;
-			part2 /= fov_max_time;
-			float remain = fov_elapsed / fov_max_time;
-			FollowCamera->SetRelativeLocation(FollowCamera->GetRelativeTransform().GetTranslation() + remain*part);
-			CameraBoom->SetRelativeLocation(CameraBoom->GetRelativeTransform().GetTranslation() + remain*part2);
-			FRotator rot = UKismetMathLibrary::FindLookAtRotation(CamPos, GetMesh()->GetRelativeTransform().GetTranslation());
-			FollowCamera->SetRelativeRotation(rot);
-			fov_elapsed += DeltaTime;
-		}
-	}
-}
-
 void ASurvivalWaveCharacter::UpdateCam(float DeltaTime) {
 	if (fov_elapsed < fov_max_time) {
 		float part = fov_check - FollowCamera->FieldOfView;
@@ -744,8 +724,7 @@ void ASurvivalWaveCharacter::DetectDamage(UPrimitiveComponent* OverlappedComp, A
 	LifeStats->DetectDamage(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	UpdateHUDLife();
 	if (LifeStats->IsDead()) {
-		bDead = true;
-		DisableInput(Cast<APlayerController>(GetController()));
+		//DisableInput(Cast<APlayerController>(GetController()));
 		if (InventoryWidget != nullptr)InventoryWidget->RemoveFromParent();
 		if (ItemHUDWidget != nullptr)ItemHUDWidget->RemoveFromParent();
 		if (WeaponHUDWidget != nullptr)WeaponHUDWidget->RemoveFromParent();

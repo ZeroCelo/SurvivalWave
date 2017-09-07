@@ -114,10 +114,7 @@ public:
 	//Function to update the camera possition, called in the tick for animation effect
 	UFUNCTION(BlueprintCallable, Category = "Cam")
 	void UpdateCam(float DeltaTime);
-
-	UFUNCTION(BlueprintCallable, Category = "Cam")
-	void UpdateDeathCam(float DeltaTime);
-
+	
 	//Event to check the player state(Aiming,running....) and update camera accordingly
 	UFUNCTION(BlueprintCallable, Category = "Cam")
 	void CheckCam();
@@ -275,9 +272,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Getter")
 	bool GetReloading() { return bReloading; }
-
-	UFUNCTION(BlueprintCallable, Category = "Getter")
-	bool IsDead() { return bDead; }
 		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bswitching;
@@ -296,9 +290,6 @@ public:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
 	bool bReloading;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
-	bool bDead;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
 	float speed_run;

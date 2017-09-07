@@ -229,6 +229,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameConfig")
 	float LevelEndTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameConfig")
+	float LevelGameOverTime;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameLevels")
 	int32 LobbyRoomIndex;
@@ -266,6 +269,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
 	FText MsgLevelEnd;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	FText MsgGameOver;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
 	FText MsgWavePrefix;	
@@ -311,6 +317,10 @@ public:
 	void CheckFinish();
 	void CallGameEnd();
 	void GameOver();
+	
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void DeathAnim();
+	
 	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void GameEnd();
