@@ -6,6 +6,7 @@
 #include "Weapon_Instant.h"
 #include "LifeStat.h"
 #include "Projectile.h"
+#include "KeyItemInventory.h"
 
 #include "SurvivalWaveCharacter.generated.h"
 
@@ -168,6 +169,7 @@ public:
 	
 	void EnableRun();
 	void DisableRun();
+	void CheckRun();
 
 	void EnableAim();
 	void DisableAim();
@@ -358,6 +360,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Life")
 	class ULifeStat* LifeStats;
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
+	void UpdateHUDKeys();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
+	class UKeyItemInventory* KeysStats;
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Life")
 	void GetKilled();

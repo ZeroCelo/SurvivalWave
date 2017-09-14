@@ -73,6 +73,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
 	EItemType WeaponAmmoType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	UCameraComponent* TargetCamera;
 	
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	EItemType GetWeaponType();

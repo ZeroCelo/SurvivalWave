@@ -118,3 +118,20 @@ void UItemDropStat::DropPoints() {
 		}
 	}
 }
+
+void UItemDropStat::DropPoints(FVector position) {
+	if (ScoreActor != nullptr) {
+		for (int32 i = 0; i < ScoreDropCount; i++) {
+			FVector Origin = position + FVector(0.0f, 0.0f, 50.0f);
+			FVector Extent(50.0f, 50.0f, 50.0f);
+			FVector Result = UKismetMathLibrary::RandomPointInBoundingBox(Origin, Extent);
+			//Origin += Result + FVector(0.0f, 0.0f, 100.0f);
+			FRotator Rot = FRotationMatrix::MakeFromX(Result).Rotator();
+			FTransform Trans(Rot, Result);
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.Owner = GetOwner();
+			//SpawnInfo.Instigator = Instigator;
+			GetWorld()->SpawnActor<AActor>(ScoreActor, Trans, SpawnInfo);
+		}
+	}
+}

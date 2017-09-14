@@ -107,6 +107,8 @@ public:
 	FItem GetDropItem();
 
 	UFUNCTION(BlueprintCallable)
+	void DropPoints(FVector position);
+
 	void DropPoints();
 
 	//Maximum Probability(Pts) of something/nothing to be dropped

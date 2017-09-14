@@ -20,7 +20,8 @@ ASurvivalWaveGameMode::ASurvivalWaveGameMode()
 	MaxWaves = 1;
 	CheckTime = 0.10f;
 	CheckDoorTime = 0.250f;
-	LastRoomLoad = true;// .Add(-1);
+	bLastRoomLoad = true;// .Add(-1);
+	bAllPlayersDead = false;
 	LoadedRooms.Add(0);
 	PreWaveTime = 2.0f;
 	LevelEndTime = 6.0f;
@@ -37,7 +38,7 @@ ASurvivalWaveGameMode::ASurvivalWaveGameMode()
 	MsgLevelEnd = MsgLevelEnd.FromString("GG WP");
 	MsgGameOver = MsgLevelEnd.FromString("GG EZ");
 	MsgWavePrefix = MsgWavePrefix.FromString("Wave ");
-	MsgWaveSuffix = MsgWaveSuffix.FromString(" End");
+	MsgWaveSuffix = MsgWaveSuffix.FromString(" Finished");
 	LobbyRoomIndex = 0;
 	LastRoomIndex = -1;
 }
@@ -47,7 +48,7 @@ void ASurvivalWaveGameMode::BeginPlay(){
 
 	CallCheckDoors(true);
 			
-	//Setup the HUD
+	//Setup the Information HUD
 	if (InfoHUDClass != nullptr) {
 		InfoHUD = CreateWidget<UUserWidget>(GetWorld(), InfoHUDClass);
 		if (InfoHUD != nullptr) InfoHUD->AddToViewport();
@@ -93,6 +94,21 @@ void ASurvivalWaveGameMode::FindDoors() {
 	}
 }
 
+void ASurvivalWaveGameMode::FindSwitch() {
+	TArray<AActor*> FoundSwitch;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AKeySwitch::StaticClass(), FoundSwitch);
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Door %d"), FoundDoors.Num()));
+	for (auto Actor : FoundSwitch) {
+		AKeySwitch* KSwitchActor = Cast<AKeySwitch>(Actor);
+		if (KSwitchActor != nullptr) {
+			for (auto& Room : WaveRooms) {
+				if (Room.AddSwitch(KSwitchActor))
+					break;
+			}
+		}
+	}
+}
+
 void ASurvivalWaveGameMode::CallCheckDoors(bool Yes) {
 	if (Yes) {
 		GetWorld()->GetTimerManager().SetTimer(CheckDoorTimer, this, &ASurvivalWaveGameMode::CheckDoors, CheckDoorTime, true);
@@ -104,14 +120,16 @@ void ASurvivalWaveGameMode::CallCheckDoors(bool Yes) {
 
 void ASurvivalWaveGameMode::CheckDoors() {
 	//Check if level was loaded before and updates its spawners/doors
-	if (LastRoomLoad) {
+	if (bLastRoomLoad) {
 		for (auto &Room : WaveRooms) {
 			Room.LevelDoors.Empty();
 			Room.SpawnEnemy.Empty();
 			Room.SpawnLoot.Empty();
+			Room.LevelSwitch.Empty();
 		}
 		FindSpawners();
 		FindDoors();
+		FindSwitch();
 		for (auto& Room : WaveRooms) {
 			if (Room.IsWaveDone()) {
 				Room.DoorsStateLoad();
@@ -121,8 +139,9 @@ void ASurvivalWaveGameMode::CheckDoors() {
 				if (DoorHasLoaded)
 					RoomDoor->SetLevelLoaded(true);
 			}
+			Room.DoorsCheckSwitch();
 		}
-		LastRoomLoad = false;
+		bLastRoomLoad = false;
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Last Load Rooms %d"), LoadedRooms.Num()));
 	}
 	else {
@@ -143,7 +162,7 @@ void ASurvivalWaveGameMode::CheckDoors() {
 								WaveRooms[RoomDoor->NextRoomIndex].DoorsStateSave();
 							UnLoadLevel(0, RoomDoor->LevelStreamName);
 							RemovedRooms.AddUnique(RoomDoor->NextRoomIndex);
-							LastRoomLoad = true;
+							bLastRoomLoad = true;
 						}
 					}
 				}
@@ -171,7 +190,7 @@ void ASurvivalWaveGameMode::CheckDoors() {
 								RoomDoor->SetLevelLoaded(true);
 								RoomDoor->SetLevelUnload(false);
 								LoadedRooms.AddUnique(RoomDoor->NextRoomIndex);
-								LastRoomLoad = true;
+								bLastRoomLoad = true;
 							}
 						}
 					}
@@ -334,7 +353,10 @@ void ASurvivalWaveGameMode::BeginWave() {
 }
 
 void ASurvivalWaveGameMode::LevelFinish() {
-	UpdateInfo(MsgLevelFinish.ToString());
+	if (LoadedRooms.Num()) {
+		if (LoadedRooms[0] != LastRoomIndex) 
+			UpdateInfo(MsgLevelFinish.ToString());
+	}
 	GetWorld()->GetTimerManager().ClearTimer(CheckTimer);
 	GetWorld()->GetTimerManager().SetTimer(CheckTimer, this, &ASurvivalWaveGameMode::CheckFinish, CheckTime, true);
 }
@@ -376,6 +398,7 @@ void ASurvivalWaveGameMode::GameOver() {
 		//PlayerController->SetCinematicMode(true, false, false, true, true);
 		APlayerController* PlayerController = Cast<APlayerController>(play->GetController());
 		play->DisableInput(PlayerController);
+		bAllPlayersDead = true;
 	}
 	
 	DeathAnim();

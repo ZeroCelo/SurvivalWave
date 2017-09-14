@@ -16,6 +16,12 @@ ASpawner::ASpawner()
 	//Create the box component that represent the spawn volume
 	SpawnBox = CreateDefaultSubobject<UBoxComponent>(TEXT("SpawnArea"));
 	RootComponent = SpawnBox;
+	RootComponent->SetAbsolute(false, false, true);
+
+	SpawnArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("SpawnArrow"));
+	SpawnArrow->SetupAttachment(RootComponent);
+	
+
 
 	//Set the spawn delays
 	SpawnDelayMin = 2.0f;
@@ -23,9 +29,11 @@ ASpawner::ASpawner()
 
 	bStartSpawn = false;
 	bRotateSpawn = true;
+	bRotateFollow = true;
 
 	CurrentSpawnCount = 0;
 	MaxSpawnCount = 3;
+	SpawnBurst = 1;
 }
 
 // Called when the game starts or when spawned
@@ -64,7 +72,7 @@ void ASpawner::SetSpawningActive(bool bShouldSpawn) {
 void ASpawner::CallSpawn() {
 	//set the timer on spawn pickup
 	SpawnDelay = FMath::FRandRange(SpawnDelayMin, SpawnDelayMax);
-	GetWorldTimerManager().SetTimer(SpawnTimer, this, &ASpawner::SpawnActor, SpawnDelay, false);
+	GetWorldTimerManager().SetTimer(SpawnTimer, this, &ASpawner::SpawnStuff, SpawnDelay, false);
 }
 
 void ASpawner::PostSpawnActor(AActor* Act) {
@@ -77,6 +85,23 @@ bool ASpawner::IsActive() {
 
 bool ASpawner::IsInfinite() {
 	return MaxSpawnCount < 0;
+}
+
+void ASpawner::SpawnStuff() {
+
+	int32 SpawnMax = CurrentSpawnCount + SpawnBurst;
+	
+	if (SpawnMax > MaxSpawnCount)SpawnMax = SpawnBurst - (SpawnMax - MaxSpawnCount);
+	else SpawnMax = SpawnBurst;
+
+	if (MaxSpawnCount < 0)SpawnMax = SpawnBurst;
+
+	for (int32 i = 0; i < SpawnMax; ++i) {
+		SpawnActor();
+	}
+
+	if (MaxSpawnCount < 0 || CurrentSpawnCount < MaxSpawnCount)
+		CallSpawn();
 }
 
 void ASpawner::SpawnActor() {
@@ -103,13 +128,15 @@ void ASpawner::SpawnActor() {
 				SpawnRotation.Pitch = FMath::FRand() * 360.0f;
 				SpawnRotation.Roll = FMath::FRand() * 360.0f;
 			}
+			else if (bRotateFollow) {
+				SpawnRotation = SpawnArrow->GetComponentRotation();
+			}
 
 			AActor* actor = World->SpawnActor<AActor>(WhatToSpawn, SpawnLocation, SpawnRotation, SpawnParams);
-			ACharacter* paw = Cast<ACharacter>(actor);
+			//ACharacter* paw = Cast<ACharacter>(actor);
 			PostSpawnActor(actor);
 			
 			CurrentSpawnCount++;
-			CallSpawn();
 		}
 	}
 }

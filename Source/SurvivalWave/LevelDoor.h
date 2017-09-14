@@ -115,6 +115,9 @@ public:
 	void SetupActive();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SetupDoorKey(float h, float s, float v);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void OpenDoor();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)

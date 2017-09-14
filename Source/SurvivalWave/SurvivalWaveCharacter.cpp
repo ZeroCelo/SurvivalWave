@@ -1,7 +1,9 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
 #include "SurvivalWave.h"
-#include "Kismet/HeadMountedDisplayFunctionLibrary.h"
+//#include "Kismet/HeadMountedDisplayFunctionLibrary.h"
+#include "HeadMountedDisplayFunctionLibrary.h"
+//#include "HeadMountedDisplayTypes.h"
 #include "SurvivalWaveCharacter.h"
 #include "TestWeapon.h"
 #include "Runtime/UMG/Public/UMG.h"
@@ -54,6 +56,9 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	LifeStats = CreateDefaultSubobject<ULifeStat>(TEXT("LifeComponent"));
 	this->AddOwnedComponent(LifeStats);
 	//LifeStats->SetupAttachment(RootComponent);
+
+	KeysStats = CreateDefaultSubobject<UKeyItemInventory>(TEXT("KeysInventory"));
+	this->AddOwnedComponent(KeysStats);
 
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ASurvivalWaveCharacter::DetectDamage);
 
@@ -164,7 +169,8 @@ void ASurvivalWaveCharacter::LookUpAtRate(float Rate)
 
 void ASurvivalWaveCharacter::MoveForward(float Value)
 {
-	if ((Controller != NULL) && (Value != 0.0f))
+	if ((Controller != NULL))
+	//if ((Controller != NULL) && (Value != 0.0f))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -174,10 +180,18 @@ void ASurvivalWaveCharacter::MoveForward(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire DirForward %f,%f,%f (%f)"), Direction.X,Direction.Y,Direction.Z,Value));
 
-		if (Value <= 0.0f) {
+		//if(Value >= 0.0f)
+			//CheckRun();
+		if(brunning && Value < 0.0f)
+			AddMovementInput(Direction, 0.0f);
+		else
+			AddMovementInput(Direction, Value); 
+
+
+		/*if (Value <= 0.0f) {
 			run_forward = 0.0f;
 		}
-
+		
 		if (!brunning) {
 			AddMovementInput(Direction, Value);
 			if (brun_press && Value > 0.0f) {
@@ -190,7 +204,7 @@ void ASurvivalWaveCharacter::MoveForward(float Value)
 			if (Value >= 0.9f) {
 				AddMovementInput(Direction, Value);
 			}
-		}
+		}*/
 	}
 }
 
@@ -289,7 +303,7 @@ void ASurvivalWaveCharacter::Tick(float DeltaTime)
 }
 
 bool ASurvivalWaveCharacter::CanRun() {
-	return (!bswitching && !bReloading && !binventory && run_forward > 0.90f);
+	return (!bswitching && !bReloading && !binventory && brun_press);
 }
 
 bool ASurvivalWaveCharacter::CanAim() {
@@ -320,8 +334,29 @@ bool ASurvivalWaveCharacter::CanReloadGun() {
 	return (!brunning && !binventory && !bswitching && !bReloading);
 }
 
+void ASurvivalWaveCharacter::CheckRun() {
+	if (CanRun()) {
+		ReleaseTrigger();
+		brunning = true;
+		baiming = false;
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
+		GetCharacterMovement()->MaxWalkSpeed = speed_run;
+		//FollowCamera->FieldOfView = fov_normal;
+		//float cur_speed = FVector::DotProduct(GetVelocity(), GetActorRotation().Vector());
+		//if(cur_speed > 10.0f)ChangeFOV(fov_run);
+		//FollowCamera->FieldOfView = fov_run;
+		UpdateAnimRun();
+		UpdateAnimAim();
+		//CheckFOV();
+		CheckCam();
+	}
+}
+
 void ASurvivalWaveCharacter::EnableRun() {
 	brun_press = true;
+	//UpdateAnimRun();
+	//UpdateAnimAim();
+	//CheckCam();
 	if (CanRun()) {
 		ReleaseTrigger();
 		brunning = true;
@@ -379,8 +414,11 @@ void ASurvivalWaveCharacter::PullTrigger() {
 		DisableRun();
 		bfiring = true;
 		if (Weapon[weapon_select] != nullptr) {
+			if(Weapon[weapon_select]->TargetCamera == nullptr)
+				Weapon[weapon_select]->TargetCamera = FollowCamera;
+
 			Weapon[weapon_select]->StartFire();
-			GetWorld()->GetTimerManager().SetTimer(TriggerTimer, this, &ASurvivalWaveCharacter::UpdateHUDWeapon, 0.2f, true);
+			GetWorld()->GetTimerManager().SetTimer(TriggerTimer, this, &ASurvivalWaveCharacter::UpdateHUDWeapon, 0.15f, true);
 		}
 		UpdateAnimFire();
 		UpdateHUDWeapon();

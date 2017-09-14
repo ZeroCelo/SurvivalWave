@@ -4,6 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "EnemyCharacter.h"
+#include "Components/ArrowComponent.h"
 
 #include "Spawner.generated.h"
 
@@ -52,21 +53,34 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning", meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* SpawnBox;
 
-	//Whether to spawn actors when game begins or actor spawn in world
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning", meta = (AllowPrivateAccess = "true"))
+	class UArrowComponent* SpawnArrow;
+
+	//Whether to spawn actors when game begins or this actor spawns in world
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
 	bool bStartSpawn;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
 	bool bRotateSpawn;
 
+	//Wether the actors should follow this spawner rotation when spawning
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
+	bool bRotateFollow;
+
 	//Maximun number Spawn Actors before deactivating, negative values infinitely spawn, 0 deactivates completely
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
 	int32 MaxSpawnCount;
+
+	//Number of actors to spawn each time the spawning happens
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
+	int32 SpawnBurst;
 
 	int32 CurrentSpawnCount;
 
 	bool IsActive();
 	bool IsInfinite();
+
+	void SpawnStuff();
 
 	//Handle the spawning of new pickup
 	void SpawnActor();

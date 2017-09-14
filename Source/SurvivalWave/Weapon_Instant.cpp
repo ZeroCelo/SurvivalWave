@@ -3,6 +3,7 @@
 #include "SurvivalWave.h"
 #include "LifeStat.h"
 #include "EnemyCharacter.h"
+#include "EnemyDrone.h"
 #include "SurvivalWaveCharacter.h"
 #include "Weapon_Instant.h"
 #include "AISimpleController.h"
@@ -24,6 +25,7 @@ void AWeapon_Instant::ShootImpact(FHitResult HitResult) {
 			DetectDamage(HitResult.GetActor());
 		}
 		else {
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Miss Impact")));
 			shot->SetVectorParameter(FName("ShockBeamEnd"), HitResult.TraceEnd);
 		}
 	}
@@ -47,6 +49,36 @@ void AWeapon_Instant::Shoot_Implementation() {
 
 	FVector start = FirePoint->GetComponentTransform().GetLocation();
 	FVector end = start + FirePoint->GetComponentTransform().GetRotation().Vector()*DamageStats->GetDamageRange();
+
+	if (TargetCamera != nullptr) {
+		FVector start2 = TargetCamera->GetComponentTransform().GetLocation();
+		FVector end2 = start2 + TargetCamera->GetComponentTransform().GetRotation().Vector()*DamageStats->GetDamageRange()*1.1f;
+
+		FHitResult RV_Hit2(ForceInit);
+
+		GetWorld()->LineTraceSingleByChannel(
+			RV_Hit2,        //result
+			start2,    //start
+			end2, //end
+			ECC_Camera, //collision channel
+			RV_TraceParams
+		);
+		FVector end_point = RV_Hit2.TraceEnd;
+		if (RV_Hit2.bBlockingHit)
+			end_point = RV_Hit2.ImpactPoint;
+		FVector new_dir = end_point - start; new_dir.Normalize();
+		FVector old_dir = end - start; old_dir.Normalize();
+		FVector error = old_dir - new_dir;
+		if(error.Size() < 0.85f)
+			end = start + new_dir*DamageStats->GetDamageRange();
+		/*GetWorld()->LineTraceSingleByChannel(
+			RV_Hit,        //result
+			start,    //start
+			RV_Hit.ImpactPoint, //end
+			ECC_Pawn, //collision channel
+			RV_TraceParams
+		);*/
+	}
 
 	//call GetWorld() from within an actor extending class
 	GetWorld()->LineTraceSingleByChannel(
@@ -73,6 +105,14 @@ void AWeapon_Instant::DetectDamage(AActor* Act) {
 			if (con != nullptr) {
 				con->SuspiciousTarget(this);
 			}
+		}
+	}
+	AEnemyDrone* EnemyDrone = Cast<AEnemyDrone>(Act);
+	if (EnemyDrone != nullptr) {
+		if (!EnemyDrone->IsPendingKill()) {
+			EnemyDrone->LifeStats->TakeDamage(DamageStats);
+			EnemyDrone->UpdateHUDLife();
+			EnemyDrone->DetectDeath();
 		}
 	}
 	ASurvivalWaveCharacter* Player = Cast<ASurvivalWaveCharacter>(Act);

@@ -3,6 +3,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "ItemSpawner.h"
 #include "LevelDoor.h"
+#include "KeySwitch.h"
 
 #include "SurvivalWaveGameMode.generated.h"
 
@@ -22,13 +23,14 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TArray<class ASpawner*> SpawnEnemy;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UPROPERTY(BlueprintReadOnly)
 	TArray<class ALevelDoor*> LevelDoors;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UPROPERTY(BlueprintReadOnly)
 	TArray<class AItemSpawner*> SpawnLoot;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<class AKeySwitch*> LevelSwitch;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bWaveDone;
@@ -41,6 +43,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString LevelDoorName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString LevelSwitchName;
 
 	//Index of Adjacent Rooms where the respective door should be set to (In)Active after wave completion
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -99,9 +104,15 @@ public:
 
 	void DoorsStateLoad() {
 		for (auto& RoomDoor : LevelDoors) {
-			if (LevelDoorActive.Contains(RoomDoor->NextRoomIndex)) {
+			if (LevelDoorActive.Contains(RoomDoor->NextRoomIndex) && RoomDoor->IsDoorClosed()) {
 				RoomDoor->SetDoorActive(LevelDoorActive[RoomDoor->NextRoomIndex]);
 			}
+		}
+	}
+
+	void DoorsCheckSwitch() {
+		for (auto& Switch : LevelSwitch) {
+			Switch->CheckDoor();
 		}
 	}
 
@@ -149,6 +160,16 @@ public:
 		return false;
 	}
 
+	bool AddSwitch(AKeySwitch* KSwitch) {
+		if (KSwitch != nullptr) {
+			if (KSwitch->GetName().Contains(LevelSwitchName)) {
+				LevelSwitch.AddUnique(KSwitch);
+				return true;
+			}
+		}
+		return false;
+	}
+
 	//Constructor
 	FLevelRoom() {
 		//Always initialize your USTRUCT variables!
@@ -156,6 +177,7 @@ public:
 		SpawnEnemyName = "Spawner";
 		SpawnLootName = "SpawnerCoin";
 		LevelDoorName = "WaveDoor";
+		LevelSwitchName = "WaveSwitch";
 		bWaveDone = false;
 	}
 };
@@ -243,7 +265,7 @@ public:
 	TArray<FLevelRoom> WaveRooms;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameLevels")
-	bool LastRoomLoad;
+	bool bLastRoomLoad;
 
 	TArray<int32> LoadedRooms;
 
@@ -279,6 +301,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
 	FText MsgWaveSuffix;	
 
+	UFUNCTION(BlueprintCallable)
 	void UpdateInfo(FString Info);
 	void UpdateError(FString Info);
 
@@ -293,6 +316,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void FindDoors();
+
+	UFUNCTION(BlueprintCallable)
+	void FindSwitch();
 
 	void CheckDoors();
 	void CallCheckDoors(bool Yes);
