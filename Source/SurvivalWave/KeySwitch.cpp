@@ -28,6 +28,7 @@ AKeySwitch::AKeySwitch()
 	MsgKeyFound = MsgKeyNeed.FromString("Door Open");
 
 	bDisplayMsg = true;
+	bDoorOpen = false;
 	KeyValue = 0.0f;
 	FindDoorTime = 0.7f;
 	Door = nullptr;
@@ -73,13 +74,25 @@ void AKeySwitch::FindDoor() {
 
 void AKeySwitch::CheckDoor() {
 	if (Door != nullptr) {
-		if (Door->IsDoorClosed() && Door->PlayerNear <= 0) {
+		//Door->CloseDoor();
+		//Door->SetDoorActive(false);
+		//Door->SetupDoorKey(KeyValue, 1.0f, 1.0f);
+		//if (Door->IsDoorClosed()) {
+		
+		if (!bDoorOpen) {
 			Door->SetDoorActive(false);
 			Door->SetupDoorKey(KeyValue,1.0f,1.0f);
 		}
-		else {
-			//Door->SetDoorActive(true);
+		else if(Door->IsDoorClosed()){
+			Door->SetDoorActive(true);
+			//Door->SetupDoorKey(KeyValue, 1.0f, 1.0f);
 		}
+		//else if(!bDoorOpen){
+			//Door->CloseDoor();
+			//Door->SetupDoorKey(KeyValue, 1.0f, 1.0f);
+			//Door->SetDoorActive(true);
+		//}
+
 	}
 }
 
@@ -87,10 +100,12 @@ void AKeySwitch::PrintMessage(bool bHasKey) {
 	if (bDisplayMsg) {
 		ASurvivalWaveGameMode* GM = Cast<ASurvivalWaveGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 		if (GM != nullptr) {
-			if(bHasKey)
-				GM->UpdateInfo(MsgKeyFound.ToString());
-			else
-				GM->UpdateInfo(MsgKeyNeed.ToString());
+			if (GM->GetCurrentState() == EWaveState::EWaveClear || GM->GetCurrentState() == EWaveState::ELevelFinish) {
+				if (bHasKey)
+					GM->UpdateInfo(MsgKeyFound.ToString());
+				else if(!bDoorOpen)
+					GM->UpdateInfo(MsgKeyNeed.ToString());
+			}
 		}
 	}
 }
@@ -106,11 +121,27 @@ void AKeySwitch::DoorCheck(UPrimitiveComponent* OverlappedComp, AActor* OtherAct
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Found Key!!")));
 			//CheckDoor();
 			if (Door != nullptr) {
-				if (!Door->IsDoorActive()) {
-					PrintMessage(true);
-					Door->SetDoorActive(true);
-					if(Door->IsDoorClosed())
-						Door->OpenDoor();
+				bDoorOpen = true;
+				ASurvivalWaveGameMode* GM = Cast<ASurvivalWaveGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+				if (GM != nullptr) {
+					if (GM->GetCurrentState() == EWaveState::EWaveClear || GM->GetCurrentState() == EWaveState::ELevelFinish) {
+						if (!Door->IsDoorActive()) {
+							PrintMessage(true);
+							Door->SetDoorActive(true);
+
+							if(!Door->IsDoorWaiting())
+								Door->OpenDoor();						
+						}
+					}
+				}
+				else {
+					if (!Door->IsDoorActive()) {
+						PrintMessage(true);
+						Door->SetDoorActive(true);
+						
+						if (!Door->IsDoorWaiting())
+							Door->OpenDoor();
+					}
 				}
 			}
 		}

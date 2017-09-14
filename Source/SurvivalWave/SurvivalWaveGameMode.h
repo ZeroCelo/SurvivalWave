@@ -186,7 +186,8 @@ public:
 UENUM(BluePrintType)
 enum class EWaveState : uint8 {
 	ELobby UMETA(DisplayName = "Lobby"),
-	EWaiting UMETA(DisplayName = "Waiting"),
+	EWaveWaiting UMETA(DisplayName = "WaveWaiting"),
+	EWaveClear UMETA(DisplayName = "WaveClear"),
 	EWaveBegin UMETA(DisplayName = "WaveBegin"),
 	ELevelFinish UMETA(DisplayName = "LevelFinish"),
 	EGameOver UMETA(DisplayName = "GameOver"),
@@ -217,6 +218,7 @@ public:
 	void SetCurrentState(EWaveState NewState);
 
 	//Keeps track of game current state
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameConfig")
 	EWaveState CurrentState;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameConfig")
@@ -335,7 +337,7 @@ public:
 	void LobbyWait();
 
 	void BeginWave();
-	void WaveWait();
+	void WaveClear();
 	void PreWaveStart();
 	void WaveStart();
 	

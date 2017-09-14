@@ -13,6 +13,11 @@ UCLASS()
 class SURVIVALWAVE_API AKeyPickup : public APickup
 {
 	GENERATED_BODY()
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
 public:
 	AKeyPickup();
 

@@ -5,6 +5,7 @@
 #include "SurvivalWaveCharacter.h"
 #include "InfoHUDClass.h"
 #include "EnemyCharacter.h"
+#include "EnemyDrone.h"
 
 #include "Runtime/UMG/Public/UMG.h"
 #include "Blueprint/UserWidget.h"
@@ -245,12 +246,20 @@ void ASurvivalWaveGameMode::HandleNewState(EWaveState NewState) {
 		GameOver();
 	}
 	break;
-	//If Wave Ended wait for player to go to next area
-	case EWaveState::EWaiting:
+	//Wait for player to clear Room
+	case EWaveState::EWaveWaiting:
 	{
 		BeginWait();
 	}
 	break;
+	//If Wave Ended wait for player to go to next area
+	case EWaveState::EWaveClear:
+	{
+		GetWorld()->GetTimerManager().ClearTimer(CheckTimer);
+		GetWorld()->GetTimerManager().SetTimer(CheckTimer, this, &ASurvivalWaveGameMode::WaveClear, CheckTime, true);
+	}
+	break;
+	
 	//Unkown/default state
 	default:
 	case EWaveState::EUnknown:
@@ -315,11 +324,11 @@ void ASurvivalWaveGameMode::WaveStart() {
 	if (LoadedRooms.Num()) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Wave Start %d"), LoadedRooms[0]));
 		WaveRooms[LoadedRooms[0]].SpawnEnemies();
-		SetCurrentState(EWaveState::EWaiting);
+		SetCurrentState(EWaveState::EWaveWaiting);
 	}
 }
 
-void ASurvivalWaveGameMode::WaveWait() {
+void ASurvivalWaveGameMode::WaveClear() {
 	
 	if (LoadedRooms.Num()) {
 		if (LoadedRooms[0] == LastRoomIndex) {
@@ -419,7 +428,9 @@ void ASurvivalWaveGameMode::WaveWaiting() {
 		if (!WaveRooms[LoadedRooms[0]].IsEnemyActive()) {
 			TArray<AActor*> FoundEnemy;
 			UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), FoundEnemy);
-			bWaveDone = (FoundEnemy.Num() <= 0);
+			TArray<AActor*> FoundDrone;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyDrone::StaticClass(), FoundDrone);
+			bWaveDone = (FoundEnemy.Num() <= 0 && FoundDrone.Num() <= 0);
 		}
 	}
 
@@ -439,14 +450,16 @@ void ASurvivalWaveGameMode::WaveWaiting() {
 		UpdateInfo(info);
 
 		WaveRooms[LoadedRooms[0]].SetDoorsLock();
+		WaveRooms[LoadedRooms[0]].DoorsCheckSwitch();
 		WaveRooms[LoadedRooms[0]].SetWaveComplete(true);
+		WaveRooms[LoadedRooms[0]].SpawnLoots();
 
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Wave Done %d/%d"), WaveComplete,MaxWaves));
 
 
 		if (WaveComplete < MaxWaves) {
-			GetWorld()->GetTimerManager().ClearTimer(CheckTimer);
-			GetWorld()->GetTimerManager().SetTimer(CheckTimer, this, &ASurvivalWaveGameMode::WaveWait, CheckTime, true);
+			
+			SetCurrentState(EWaveState::EWaveClear);
 		}
 		else {
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Wave Last %d"), LoadedRooms[0]));

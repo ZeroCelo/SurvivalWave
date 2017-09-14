@@ -12,9 +12,15 @@ AKeyPickup::AKeyPickup() {
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
 	CollisionSphere->SetupAttachment(RootComponent);
 	CollisionSphere->SetSphereRadius(100.0f);
-	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AKeyPickup::KeyHit);
+	//CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AKeyPickup::KeyHit);
 
 	KeyValue = 0.0f;
+}
+
+void AKeyPickup::BeginPlay() {
+	Super::BeginPlay();
+	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AKeyPickup::KeyHit);
+
 }
 
 void AKeyPickup::WasCollected_Implementation() {
