@@ -28,6 +28,7 @@ AKeySwitch::AKeySwitch()
 	MsgKeyFound = MsgKeyNeed.FromString("Door Open");
 
 	bDisplayMsg = true;
+	bDisplayKey = false;
 	bDoorOpen = false;
 	KeyValue = 0.0f;
 	FindDoorTime = 0.7f;
@@ -103,8 +104,15 @@ void AKeySwitch::PrintMessage(bool bHasKey) {
 			if (GM->GetCurrentState() == EWaveState::EWaveClear || GM->GetCurrentState() == EWaveState::ELevelFinish) {
 				if (bHasKey)
 					GM->UpdateInfo(MsgKeyFound.ToString());
-				else if(!bDoorOpen)
-					GM->UpdateInfo(MsgKeyNeed.ToString());
+				else if (!bDoorOpen) {
+					FString msg = MsgKeyNeed.ToString();
+					if (bDisplayKey) {
+						int32 key = (int32)KeyValue;
+						FString KeyStr; KeyStr.AppendInt(key);
+						msg += ' '; msg += KeyStr;
+					}
+					GM->UpdateInfo(msg);
+				}
 			}
 		}
 	}
@@ -124,7 +132,8 @@ void AKeySwitch::DoorCheck(UPrimitiveComponent* OverlappedComp, AActor* OtherAct
 				bDoorOpen = true;
 				ASurvivalWaveGameMode* GM = Cast<ASurvivalWaveGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 				if (GM != nullptr) {
-					if (GM->GetCurrentState() == EWaveState::EWaveClear || GM->GetCurrentState() == EWaveState::ELevelFinish) {
+					//if (GM->GetCurrentState() == EWaveState::EWaveClear || GM->GetCurrentState() == EWaveState::ELevelFinish || GM->GetCurrentState() == EWaveState::EUnknown) {
+					if (!(GM->GetCurrentState() == EWaveState::EWaveWaiting) && !(GM->GetCurrentState() == EWaveState::EGameOver) && !(GM->GetCurrentState() == EWaveState::EWaveBegin)) {
 						if (!Door->IsDoorActive()) {
 							PrintMessage(true);
 							Door->SetDoorActive(true);
@@ -132,6 +141,12 @@ void AKeySwitch::DoorCheck(UPrimitiveComponent* OverlappedComp, AActor* OtherAct
 							if(!Door->IsDoorWaiting())
 								Door->OpenDoor();						
 						}
+					}
+					else {
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Checking...")));
+						Door->SetDoorActive(false);
+						Door->SetupDoorKey(KeyValue, 1.0f, 1.0f);
+						//CheckDoor();
 					}
 				}
 				else {

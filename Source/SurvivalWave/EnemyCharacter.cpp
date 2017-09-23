@@ -24,6 +24,7 @@ AEnemyCharacter::AEnemyCharacter()
 	PerceptionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PerceptionSphere"));
 	PerceptionSphere->SetupAttachment(RootComponent);
 	PerceptionSphere->SetSphereRadius(500.0f);
+	
 
 	PerceptionSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemyCharacter::DetectPlayer);
 	PerceptionSphere->OnComponentEndOverlap.AddDynamic(this, &AEnemyCharacter::UnDetectPlayer);
@@ -92,6 +93,10 @@ void AEnemyCharacter::DetectDeath() {
 	if (LifeStats->IsDead() && !bIsDying) {
 		bIsDying = true;
 		DropItems();
+		AController* con = GetController();
+		if (con != nullptr) {
+			con->StopMovement();
+		}
 		GetKilled();
 		GetWorld()->GetTimerManager().SetTimer(DeadTimer, this, &AEnemyCharacter::Death, DyingTime, false);
 	}
@@ -158,6 +163,7 @@ void AEnemyCharacter::DetectAttack(UPrimitiveComponent* OverlappedComp, AActor* 
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Player >>Detect %s %llx %llX"),*play->GetName(),poi,add));
 		if (!PlayerActorsAttack.Contains(add))
 			PlayerActorsAttack.Add(add, OtherActor);
+		//DoDamage();
 		GetWorld()->GetTimerManager().SetTimer(AttackTimer,this, &AEnemyCharacter::DoDamage,AttackInterval,true);
 	}
 }

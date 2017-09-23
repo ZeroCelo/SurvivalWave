@@ -16,3 +16,8 @@ void UInfoHUDClass::SetError(FString Info) {
 	ErrorMsg = FText::FromString(Info);
 	ErrorUpdate();
 }
+
+void UInfoHUDClass::SetBoss(FString Info) {
+	BossMsg = FText::FromString(Info);
+	BossUpdate();
+}

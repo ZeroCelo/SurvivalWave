@@ -271,6 +271,14 @@ void ASurvivalWaveGameMode::HandleNewState(EWaveState NewState) {
 	}
 }
 
+void ASurvivalWaveGameMode::UpdateBossInfo(FString Info) {
+	if (InfoHUD != nullptr) {
+		UInfoHUDClass* InfoWidget = Cast<UInfoHUDClass>(InfoHUD);
+		if (InfoWidget != nullptr)
+			InfoWidget->SetBoss(Info);
+	}
+}
+
 void ASurvivalWaveGameMode::UpdateInfo(FString Info) {
 	if (InfoHUD != nullptr) {
 		UInfoHUDClass* InfoWidget = Cast<UInfoHUDClass>(InfoHUD);

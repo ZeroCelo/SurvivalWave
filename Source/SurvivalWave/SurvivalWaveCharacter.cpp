@@ -135,6 +135,7 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASurvivalWaveCharacter::InteractPress);
 	PlayerInputComponent->BindAction("DropGun", IE_Pressed, this, &ASurvivalWaveCharacter::DropGunPress);
 	PlayerInputComponent->BindAction("ReloadGun", IE_Pressed, this, &ASurvivalWaveCharacter::ReloadGunPress);
+	PlayerInputComponent->BindAction("PauseGame", IE_Pressed, this, &ASurvivalWaveCharacter::PausePress);
 	PlayerInputComponent->BindAction("SelectWeapon1", IE_Pressed, this, &ASurvivalWaveCharacter::FirstGunPress);
 	PlayerInputComponent->BindAction("SelectWeapon2", IE_Pressed, this, &ASurvivalWaveCharacter::SecondGunPress);
 	PlayerInputComponent->BindAction("SelectWeaponPistol", IE_Pressed, this, &ASurvivalWaveCharacter::PistolGunPress);
@@ -653,6 +654,10 @@ void ASurvivalWaveCharacter::InteractPress() {
 		}
 		InteractPressBP();
 	}
+}
+
+void ASurvivalWaveCharacter::PausePress() {
+	PausePressBP();
 }
 
 void ASurvivalWaveCharacter::ChangeCam(FVector new_pos, float new_fov) {

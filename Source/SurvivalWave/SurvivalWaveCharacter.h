@@ -183,6 +183,7 @@ public:
 	void PullTrigger();
 	void ReleaseTrigger();
 
+	void PausePress();
 	void FirstGunPress();
 	void SecondGunPress();
 	void PistolGunPress();
@@ -203,6 +204,10 @@ public:
 	//Event to make Blueprint related things on this state context
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Inventory")
 	void InteractPressBP();
+
+	//Event that handles the pause game state
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void PausePressBP();
 
 	//Event to make Blueprint related things on this state context
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Pickup")

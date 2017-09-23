@@ -8,6 +8,7 @@
 AAIFollowerController::AAIFollowerController(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer) {
 	TargetActor = nullptr;
 	StateTime = 0.050f;
+	DumbTime = 2.00f;
 	bIsIdle = true;
 }
 
@@ -16,10 +17,11 @@ void AAIFollowerController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	GetWorld()->GetTimerManager().SetTimer(StateTimer, this, &AAIFollowerController::CheckState, StateTime, true);
+	GetWorld()->GetTimerManager().SetTimer(StateTimer, this, &AAIFollowerController::CheckState, StateTime, false);
 }
 
 void AAIFollowerController::CheckState() {
+	float NextCall = StateTime;
 	if (EnemyRef != nullptr) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AI Ref...")));
 		if (!EnemyRef->LifeStats->IsDead()) {
@@ -29,6 +31,12 @@ void AAIFollowerController::CheckState() {
 				GetWorld()->GetTimerManager().ClearTimer(IdleTimer);
 				Target = TargetActor->GetActorLocation();
 				GetWorld()->GetNavigationSystem()->SimpleMoveToLocation(this, Target);
+				FVector dist = EnemyRef->GetActorLocation() - TargetActor->GetActorLocation();
+				if (dist.Size() <= 100.0f) {
+					//NextCall = FMath::RandRange(StrafeTimeMin, StrafeTimeMax);
+					EnemyRef->DoDamage();
+					NextCall = DumbTime;
+				}
 				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("GET HIM!!")));
 			}
 			else {
@@ -41,4 +49,5 @@ void AAIFollowerController::CheckState() {
 			}
 		}
 	}
+	GetWorld()->GetTimerManager().SetTimer(StateTimer, this, &AAIFollowerController::CheckState, NextCall, false);
 }

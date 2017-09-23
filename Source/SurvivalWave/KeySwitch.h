@@ -44,6 +44,9 @@ public:
 	bool bDisplayMsg;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
+	bool bDisplayKey;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")
 	bool bDoorOpen;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMessages")

@@ -34,7 +34,6 @@ AProjectile::AProjectile()
 
 	AreaDamageTime = 0.050f;
 	bAreaDamage = false;
-	bDestroying = false;
 
 	//ProjectileMove->SetUpdatedComponent(RootComponent);
 
@@ -51,7 +50,8 @@ void AProjectile::BeginPlay()
 	if (ProjectileFX != nullptr) {
 		//if(FXPoint == nullptr)
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("ImpactNull")));
-		ProjectilePSC = UGameplayStatics::SpawnEmitterAttached(ProjectileFX, RootComponent);
+		//ProjectilePSC = UGameplayStatics::SpawnEmitterAttached(ProjectileFX, RootComponent);
+		ProjectilePSC = UGameplayStatics::SpawnEmitterAttached(ProjectileFX, FXPoint);
 	}
 	StartPosition = GetActorLocation();
 	
@@ -102,15 +102,17 @@ void AProjectile::Impact(FVector location, FRotator rotation) {
 }
 
 void AProjectile::ProjectileHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	Impact(CollisionSphere->GetComponentLocation(), CollisionSphere->GetComponentRotation());
-	if (bAreaDamage) {
-		ACharacter* cha = Cast<ACharacter>(OtherActor);
-		if (ImpactFX != nullptr && cha != nullptr) {
-			//UParticleSystemComponent* shot = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),TraceFX,FirePoint->GetComponentLocation(),FirePoint->GetComponentRotation());
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactFX, OtherActor->GetActorLocation());
-			AAISimpleController* con = Cast<AAISimpleController>(cha->GetController());
-			if (con != nullptr) {
-				con->SuspiciousTarget(GetOwner());
+	if (OtherActor != GetOwner()) {
+		Impact(CollisionSphere->GetComponentLocation(), CollisionSphere->GetComponentRotation());
+		if (bAreaDamage) {
+			ACharacter* cha = Cast<ACharacter>(OtherActor);
+			if (ImpactFX != nullptr && cha != nullptr) {
+				//UParticleSystemComponent* shot = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),TraceFX,FirePoint->GetComponentLocation(),FirePoint->GetComponentRotation());
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactFX, OtherActor->GetActorLocation());
+				AAISimpleController* con = Cast<AAISimpleController>(cha->GetController());
+				if (con != nullptr) {
+					con->SuspiciousTarget(GetOwner());
+				}
 			}
 		}
 	}

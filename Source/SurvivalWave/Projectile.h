@@ -58,8 +58,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bAreaDamage;
 
-	bool bDestroying;
-
 	UFUNCTION(BlueprintCallable)
 	bool DoesAreaDamage();
 

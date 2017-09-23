@@ -34,5 +34,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	float StateTime;
 
+	//Time in Seconds that the AI will remain still after reaching the player
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
+	float DumbTime;
+
 	FTimerHandle StateTimer;
 };

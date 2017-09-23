@@ -148,19 +148,28 @@ FVector AAIDroneController::StrafeDrone() {
 }
 
 FVector AAIDroneController::RepositionDrone() {
-	ACharacter* play = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	if (play != nullptr) {
-		FVector dist = play->GetActorLocation() - GetPawn()->GetActorLocation();
-		float d = dist.Size();
-		dist.Normalize();
-		//dist *= (d*4.0f);
-		dist *= MaxRange + d;
-
-		//FVector new_location = GetPawn()->GetActorLocation() + dist;
-		FVector new_location = play->GetActorLocation() + dist;
-		return new_location;
+	if (StillCount > 1) {
+		FNavLocation Result;
+		GetWorld()->GetNavigationSystem()->GetRandomReachablePointInRadius(GetPawn()->GetActorLocation(),StrafeDistMax,Result);
+		
+		return Result.Location;
 	}
-	return GetPawn()->GetActorLocation();
+	else {
+		ACharacter* play = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+		if (play != nullptr) {
+			FVector dist = play->GetActorLocation() - GetPawn()->GetActorLocation();
+			float d = dist.Size();
+			dist.Normalize();
+			//dist *= (d*4.0f);
+			dist *= MaxRange + d;
+
+			//FVector new_location = GetPawn()->GetActorLocation() + dist;
+			FVector new_location = play->GetActorLocation() + dist;
+			return new_location;
+		}
+		else
+			return GetPawn()->GetActorLocation();
+	}
 }
 
 void AAIDroneController::MoveDrone() {

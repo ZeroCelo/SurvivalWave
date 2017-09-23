@@ -304,6 +304,9 @@ public:
 	FText MsgWaveSuffix;	
 
 	UFUNCTION(BlueprintCallable)
+	void UpdateBossInfo(FString Info);
+
+	UFUNCTION(BlueprintCallable)
 	void UpdateInfo(FString Info);
 	void UpdateError(FString Info);
 

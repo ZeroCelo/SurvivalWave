@@ -23,16 +23,25 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FText ErrorMsg;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FText BossMsg;
+
 	UFUNCTION(BlueprintCallable)
 	void SetInfo(FString Info);
 
 	UFUNCTION(BlueprintCallable)
 	void SetError(FString Info);
 
+	UFUNCTION(BlueprintCallable)
+	void SetBoss(FString Info);
+
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void InfoUpdate();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void ErrorUpdate();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void BossUpdate();
 	
 };
