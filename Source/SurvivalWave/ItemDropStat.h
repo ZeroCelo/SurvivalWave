@@ -109,6 +109,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DropPoints(FVector position);
 
+	UFUNCTION(BlueprintCallable)
+	void ShouldDropPoints(bool bNewDrop);
+
 	void DropPoints();
 
 	//Maximum Probability(Pts) of something/nothing to be dropped
@@ -129,6 +132,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AActor> ScoreActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bShouldDropPoints;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 ScoreDropCount;

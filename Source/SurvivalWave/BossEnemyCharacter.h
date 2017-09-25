@@ -112,7 +112,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 	void ProjectileAttack(FVector Offset, bool bUseOffset);
-	
+			
 	void UpdateController();
 	void SpawnMinions();
 	void IntimidatePlayer();

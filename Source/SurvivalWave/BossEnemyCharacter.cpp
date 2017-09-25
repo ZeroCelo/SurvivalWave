@@ -4,6 +4,7 @@
 #include "BossEnemyCharacter.h"
 #include "SurvivalWaveGameMode.h"
 #include "AIBossController.h"
+#include "ItemDropStat.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "AI/Navigation/NavigationPath.h"
@@ -124,7 +125,15 @@ void ABossEnemyCharacter::SpawnMinions() {
 					FActorSpawnParameters SpawnInfo;
 					SpawnInfo.Owner = this;
 					SpawnInfo.Instigator = Instigator;
-					GetWorld()->SpawnActor<AActor>(Minion.MinionClass, Result.Location, rot, SpawnInfo);
+					AActor* act = GetWorld()->SpawnActor<AActor>(Minion.MinionClass, Result.Location, rot, SpawnInfo);
+					//SpawnMinionsBP(act);
+					if (act != nullptr) {
+						UItemDropStat* Drop = act->FindComponentByClass<UItemDropStat>();
+						if (Drop != nullptr) {
+							//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Got  Drop Stat")));
+							Drop->ShouldDropPoints(false);
+						}
+					}
 				}
 			}
 		}
@@ -140,6 +149,6 @@ void ABossEnemyCharacter::ProjectileAttack(FVector Offset, bool bUseOffset) {
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.Owner = this;
 		SpawnInfo.Instigator = Instigator;
-		GetWorld()->SpawnActor<AActor>(ProjectileAbilityClass, location, rot, SpawnInfo);
+		AActor* act = GetWorld()->SpawnActor<AActor>(ProjectileAbilityClass, location, rot, SpawnInfo);
 	}
 }

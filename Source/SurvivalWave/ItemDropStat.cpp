@@ -17,6 +17,7 @@ UItemDropStat::UItemDropStat()
 	NothingChance = 30;
 	MaxChance = 100;
 	ScoreDropCount = 10;
+	bShouldDropPoints = true;
 }
 
 
@@ -65,6 +66,10 @@ int32 UItemDropStat::GetDropQuantity() {
 	return resul;
 }
 
+void UItemDropStat::ShouldDropPoints(bool bNewDrop) {
+	bShouldDropPoints = bNewDrop;
+}
+
 FItem UItemDropStat::GetDropItem() {
 	int32 Max = 0;
 	FItem drop;
@@ -98,40 +103,44 @@ bool UItemDropStat::GetDrop() {
 }
 
 void UItemDropStat::DropPoints() {
-	if (ScoreActor != nullptr) {
-		AActor* act = GetOwner();
-		if (act != nullptr) {
-			for (int32 i = 0; i < ScoreDropCount; i++) {
-				FVector Origin = act->GetActorLocation() + FVector(0.0f, 0.0f, 50.0f);
-				FVector Extent(50.0f, 50.0f, 50.0f);
-				FVector Result = UKismetMathLibrary::RandomPointInBoundingBox(Origin, Extent);
-				//Origin += Result + FVector(0.0f, 0.0f, 100.0f);
-				FRotator Rot = FRotationMatrix::MakeFromX(Result).Rotator();
-				FTransform Trans(Rot, Result);
+	if (bShouldDropPoints) {
+		if (ScoreActor != nullptr) {
+			AActor* act = GetOwner();
+			if (act != nullptr) {
+				for (int32 i = 0; i < ScoreDropCount; i++) {
+					FVector Origin = act->GetActorLocation() + FVector(0.0f, 0.0f, 50.0f);
+					FVector Extent(50.0f, 50.0f, 50.0f);
+					FVector Result = UKismetMathLibrary::RandomPointInBoundingBox(Origin, Extent);
+					//Origin += Result + FVector(0.0f, 0.0f, 100.0f);
+					FRotator Rot = FRotationMatrix::MakeFromX(Result).Rotator();
+					FTransform Trans(Rot, Result);
 
-				FActorSpawnParameters SpawnInfo;
-				SpawnInfo.Owner = GetOwner();
-				//SpawnInfo.Instigator = Instigator;
-				
-				GetWorld()->SpawnActor<AActor>(ScoreActor, Trans,SpawnInfo);
+					FActorSpawnParameters SpawnInfo;
+					SpawnInfo.Owner = GetOwner();
+					//SpawnInfo.Instigator = Instigator;
+
+					GetWorld()->SpawnActor<AActor>(ScoreActor, Trans, SpawnInfo);
+				}
 			}
 		}
 	}
 }
 
 void UItemDropStat::DropPoints(FVector position) {
-	if (ScoreActor != nullptr) {
-		for (int32 i = 0; i < ScoreDropCount; i++) {
-			FVector Origin = position + FVector(0.0f, 0.0f, 50.0f);
-			FVector Extent(50.0f, 50.0f, 50.0f);
-			FVector Result = UKismetMathLibrary::RandomPointInBoundingBox(Origin, Extent);
-			//Origin += Result + FVector(0.0f, 0.0f, 100.0f);
-			FRotator Rot = FRotationMatrix::MakeFromX(Result).Rotator();
-			FTransform Trans(Rot, Result);
-			FActorSpawnParameters SpawnInfo;
-			SpawnInfo.Owner = GetOwner();
-			//SpawnInfo.Instigator = Instigator;
-			GetWorld()->SpawnActor<AActor>(ScoreActor, Trans, SpawnInfo);
+	if (bShouldDropPoints) {
+		if (ScoreActor != nullptr) {
+			for (int32 i = 0; i < ScoreDropCount; i++) {
+				FVector Origin = position + FVector(0.0f, 0.0f, 50.0f);
+				FVector Extent(50.0f, 50.0f, 50.0f);
+				FVector Result = UKismetMathLibrary::RandomPointInBoundingBox(Origin, Extent);
+				//Origin += Result + FVector(0.0f, 0.0f, 100.0f);
+				FRotator Rot = FRotationMatrix::MakeFromX(Result).Rotator();
+				FTransform Trans(Rot, Result);
+				FActorSpawnParameters SpawnInfo;
+				SpawnInfo.Owner = GetOwner();
+				//SpawnInfo.Instigator = Instigator;
+				GetWorld()->SpawnActor<AActor>(ScoreActor, Trans, SpawnInfo);
+			}
 		}
 	}
 }
