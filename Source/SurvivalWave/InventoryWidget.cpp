@@ -243,6 +243,10 @@ FItem UInventoryWidget::DropWeapon(int32 index) {
 }
 
 int32 UInventoryWidget::GetItemSum(EItemType it) {
+	/*GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("It %s"), *FItem::GetItemEnumAsString(it)));
+	for (auto It : ItemMapTotal) {
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Item %s = %d"), *FItem::GetItemEnumAsString(It.Key),It.Value));
+	}*/
 	if (ItemMapTotal.Contains(it))return ItemMapTotal[it];
 	else return 0;
 }

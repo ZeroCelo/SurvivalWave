@@ -231,6 +231,7 @@ void ASurvivalWaveCharacter::MoveRight(float Value)
 void ASurvivalWaveCharacter::BeginPlay() {
 	Super::BeginPlay();
 	EnableInput(Cast<APlayerController>(GetController()));
+
 	//Setup the Inventory Widget
 	if (InventoryClass != nullptr) {
 		InventoryWidget = CreateWidget<UUserWidget>(GetWorld(), InventoryClass);
@@ -250,7 +251,13 @@ void ASurvivalWaveCharacter::BeginPlay() {
 		if (LifeHUDWidget != nullptr) {
 			LifeHUDWidget->AddToViewport();
 			UpdateHUDLife();
+			UpdateHUDShield();
 		}
+	}
+	//Setup Shield Check
+	if (LifeStats != nullptr) {
+		//GetWorld()->GetTimerManager().SetTimer(ShieldTimer, this, &ASurvivalWaveCharacter::UpdateHUDShield, LifeStats->ShieldRechargeRate, true);
+		GetWorld()->GetTimerManager().SetTimer(ShieldTimer, this, &ASurvivalWaveCharacter::UpdateHUDShield, 0.03f, true);
 	}
 	//Setup Weapon Information widget
 	if (WeaponHUDClass != nullptr) {
@@ -766,6 +773,7 @@ void ASurvivalWaveCharacter::DetectDamage(UPrimitiveComponent* OverlappedComp, A
 {
 	LifeStats->DetectDamage(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	UpdateHUDLife();
+	UpdateHUDShield();
 	if (LifeStats->IsDead()) {
 		//DisableInput(Cast<APlayerController>(GetController()));
 		if (InventoryWidget != nullptr)InventoryWidget->RemoveFromParent();

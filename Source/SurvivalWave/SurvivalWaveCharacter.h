@@ -355,6 +355,9 @@ public:
 	void UpdateHUDLife();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
+	void UpdateHUDShield();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
 	void UpdateHUDWeapon();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HUD")
@@ -382,5 +385,6 @@ public:
 	float DeathTime;
 
 	FTimerHandle DeathTimer;
+	FTimerHandle ShieldTimer;
 };
 

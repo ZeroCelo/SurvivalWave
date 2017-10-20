@@ -127,8 +127,12 @@ void ALevelDoor::CheckPlayer(AActor* Other) {
 			bActive = false;
 			SetupActive();
 		}
-		if (dir <= 1.45f && dir >= 0.0f) {
+		if (dir >= 0.0f && dir <= 1.45f) {
 			bLevelShouldUnload = true;
+		}
+		//else if(dir > -1.0f){
+		else {
+			bLevelShouldUnload = false;
 		}
 	}
 	else {

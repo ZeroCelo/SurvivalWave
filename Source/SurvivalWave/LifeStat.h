@@ -25,11 +25,45 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
 	float Life;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
 	float LifeMax;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float Shield;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float ShieldMax;
+
+	//Whether we use shield recharging functions
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	bool bShieldActive;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float ShieldRechargeAmount;
+
+	//Interval in wich shield recovers
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float ShieldRechargeRate;
+
+	//Time the sield takes to start recharging
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float ShieldRechargeWait;
+
+	bool bRecharging;
+
+	FTimerHandle RechargeTimer;
+
+	UFUNCTION(BlueprintCallable)
+	bool DoesShieldRecharge() { return bShieldActive; }
+
+	UFUNCTION(BlueprintCallable)
+	bool IsShieldRecharging();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsShieldActive();
 
 	UFUNCTION(BlueprintCallable)
 	float GetLife() { return Life; }
@@ -38,10 +72,23 @@ public:
 	float GetLifeMax() { return LifeMax; }
 
 	UFUNCTION(BlueprintCallable)
+	float GetShield() { return Shield; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetShieldMax() { return ShieldMax; }
+
+	UFUNCTION(BlueprintCallable)
 	bool NeedHealing();
 
 	UFUNCTION(BlueprintCallable)
 	bool IsDead();
+
+	UFUNCTION(BlueprintCallable)
+	void ShieldRecharge();
+
+	//Function that calls the recharging procedure, true = Call in Waiting time, false = call in Recharging time
+	UFUNCTION(BlueprintCallable)
+	void ShieldCallRecharge(bool bWait = false);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void TakeDamageMultiplier(float dmg, float multi);

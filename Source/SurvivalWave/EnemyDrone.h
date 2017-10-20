@@ -88,7 +88,7 @@ public:
 	bool bIsDying;
 
 	UFUNCTION(BlueprintCallable)
-	void Attack(ACharacter* Char);
+	void Attack(ACharacter* Char, FVector off);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void UpdateFly(float pos);

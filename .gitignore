@@ -78,6 +78,7 @@ DerivedDataCache/*
 
 Content/*
 DemoBuild/
+Releases/
 !Content/Animations/
 !Content/Blueprints/
 !Content/Materials/

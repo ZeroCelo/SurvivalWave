@@ -132,13 +132,13 @@ void AEnemyDrone::DetectDamage(UPrimitiveComponent* OverlappedComp, AActor* Othe
 	DetectDeath();
 }
 
-void AEnemyDrone::Attack(ACharacter* Char) {
+void AEnemyDrone::Attack(ACharacter* Char, FVector off) {
 	if (ProjectileClass != nullptr && Char != nullptr) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Pew Pew")));
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.Owner = this;
 		SpawnInfo.Instigator = Instigator;
-		FVector Direction = Char->GetActorLocation() - AttackPoint->GetComponentLocation();
+		FVector Direction = (Char->GetActorLocation() + off) - AttackPoint->GetComponentLocation();
 		FRotator Rot = FRotationMatrix::MakeFromX(Direction).Rotator();
 
 		AProjectile* proj = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, AttackPoint->GetComponentLocation(), Rot, SpawnInfo);

@@ -162,6 +162,8 @@ void ASurvivalWaveGameMode::CheckDoors() {
 							if (WaveRooms[RoomDoor->NextRoomIndex].IsWaveDone() && RoomDoor->NextRoomIndex != LastRoomIndex && RoomDoor->NextRoomIndex != LobbyRoomIndex)
 								WaveRooms[RoomDoor->NextRoomIndex].DoorsStateSave();
 							UnLoadLevel(0, RoomDoor->LevelStreamName);
+							//UGameplayStatics::LoadStreamLevel();
+							
 							RemovedRooms.AddUnique(RoomDoor->NextRoomIndex);
 							bLastRoomLoad = true;
 						}

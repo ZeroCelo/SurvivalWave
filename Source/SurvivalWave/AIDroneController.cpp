@@ -195,7 +195,7 @@ void AAIDroneController::Attack() {
 		if (!EnemyRef->LifeStats->IsDead()) {
 			ACharacter* play = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 			if (play != nullptr) {
-				EnemyRef->Attack(play);
+				EnemyRef->Attack(play, FVector(0.0f,0.0f,50.0f));
 			}
 
 			float NextAttack = FMath::RandRange(AttackIntervalMin, AttackIntervalMax);

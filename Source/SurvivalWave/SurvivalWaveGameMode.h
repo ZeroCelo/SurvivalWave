@@ -162,6 +162,7 @@ public:
 
 	bool AddSwitch(AKeySwitch* KSwitch) {
 		if (KSwitch != nullptr) {
+			
 			if (KSwitch->GetName().Contains(LevelSwitchName)) {
 				LevelSwitch.AddUnique(KSwitch);
 				return true;
@@ -239,9 +240,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameInfo")
 	bool bAllPlayersDead;
 
+	//Time interval for the game mode to keep checking on player actions after room cleared
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameConfig")
 	float CheckTime;
 
+	//Time interval that game mode checks if a door needs loading
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameConfig")
 	float CheckDoorTime;
 

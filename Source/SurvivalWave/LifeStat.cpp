@@ -19,6 +19,14 @@ ULifeStat::ULifeStat()
 
 	Life = 100.0f;
 	LifeMax = 100.0f;
+	Shield = 50.0f;
+	ShieldMax = 50.0f;
+	ShieldRechargeAmount = 1.0f;
+	ShieldRechargeRate = 1.0f;
+	ShieldRechargeWait = 10.0f;
+	bShieldActive = false;
+	bRecharging = false;
+
 }
 
 
@@ -26,7 +34,8 @@ ULifeStat::ULifeStat()
 void ULifeStat::BeginPlay()
 {
 	Super::BeginPlay();
-
+	ShieldRechargeWait = ShieldRechargeWait;
+	ShieldRechargeRate = ShieldRechargeRate;
 	// ...
 }
 
@@ -47,21 +56,89 @@ bool ULifeStat::IsDead() {
 	return (Life <= 0.0f);
 }
 
+bool ULifeStat::IsShieldRecharging() {
+	return bRecharging;
+}
+
+bool ULifeStat::IsShieldActive() {
+	return bShieldActive && Shield > 0.0f;
+}
+
+void ULifeStat::ShieldCallRecharge(bool bWait) {
+	if (bWait) {
+		GetWorld()->GetTimerManager().ClearTimer(RechargeTimer);
+		GetWorld()->GetTimerManager().SetTimer(RechargeTimer, this, &ULifeStat::ShieldRecharge, ShieldRechargeWait, false);
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("LifeStat Shield Wait %f"),ShieldRechargeWait));
+	}
+	else {
+		GetWorld()->GetTimerManager().SetTimer(RechargeTimer, this, &ULifeStat::ShieldRecharge, ShieldRechargeRate, false);
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("LifeStat Shield Call %f"), ShieldRechargeRate));
+	}
+}
+
+void ULifeStat::ShieldRecharge() {
+	bRecharging = true;
+	Shield += ShieldRechargeAmount;
+	if (Shield > ShieldMax)Shield = ShieldMax;
+	if (Shield <= 0.0f)Shield = 0.0f;
+
+	if (Shield < ShieldMax && DoesShieldRecharge())
+		ShieldCallRecharge();
+	else
+		bRecharging = false;
+}
+
 void ULifeStat::RestoreLife_Implementation(float rest) {
 	Life += rest;
 	if (Life >= LifeMax)Life = LifeMax;
+	if (Life <= 0.0f)Life = 0.0f;
 }
 
 void ULifeStat::TakeDamage_Implementation(UDamageStat* dmg) {
 	if (dmg != nullptr) {
-		Life -= dmg->GetDamage();
-		if (Life <= 0.0f)Life = 0.0f;
+		if (DoesShieldRecharge()) {
+			bRecharging = false;
+			if (Shield > 0.0f) {
+				Shield -= dmg->GetDamage();
+				if (Shield > ShieldMax)Shield = ShieldMax;
+				if (Shield <= 0.0f)Shield = 0.0f;
+			}
+			else {
+				Life -= dmg->GetDamage();
+				if (Life <= 0.0f)Life = 0.0f;
+				if (Life >= LifeMax)Life = LifeMax;
+			}
+			ShieldCallRecharge(true);
+		}
+		else {
+			Life -= dmg->GetDamage();
+			if (Life <= 0.0f)Life = 0.0f;
+			if (Life >= LifeMax)Life = LifeMax;
+		}
 	}
 }
 
 void ULifeStat::TakeDamageMultiplier_Implementation(float dmg,float multi) {
-	Life -= (dmg*multi);
-	if (Life <= 0.0f)Life = 0.0f;
+
+	if (DoesShieldRecharge()) {
+		bRecharging = false;
+		if (Shield > 0.0f) {
+			Shield -= (dmg*multi);
+			if (Shield > ShieldMax)Shield = ShieldMax;
+			if (Shield <= 0.0f)Shield = 0.0f;
+		}
+		else {
+			Life -= (dmg*multi);
+			if (Life <= 0.0f)Life = 0.0f;
+			if (Life >= LifeMax)Life = LifeMax;
+		}
+		ShieldCallRecharge(true);
+	}
+	else {
+		Life -= (dmg*multi);
+		if (Life <= 0.0f)Life = 0.0f;
+		if (Life >= LifeMax)Life = LifeMax;
+	}
 }
 
 void ULifeStat::DetectDamage(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
