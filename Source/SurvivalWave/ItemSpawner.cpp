@@ -5,7 +5,7 @@
 #include "ItemPickup.h"
 
 
-AItemSpawner::AItemSpawner() {
+AItemSpawner::AItemSpawner():Super() {
 	DropStats = CreateDefaultSubobject<UItemDropStat>(TEXT("DropComponent"));
 	this->AddOwnedComponent(DropStats);
 }

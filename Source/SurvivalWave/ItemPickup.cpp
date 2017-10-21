@@ -9,18 +9,25 @@ TMap<EItemType, UStaticMesh*> AItemPickup::ItemMapMesh;
 TMap<EItemType, FVector> AItemPickup::ItemMapSize;
 TMap<EItemType, int32> AItemPickup::ItemMapLimit;
 
-AItemPickup::AItemPickup(){
+AItemPickup::AItemPickup():Super(){
+
 	GetMesh()->SetSimulatePhysics(true);
 
 	
 }
 
 void AItemPickup::BeginPlay() {
+	Super::BeginPlay();
 	ItemStat.GenerateID();
 }
 
 void AItemPickup::OnConstruction(const FTransform& Transform) {
+	Super::OnConstruction(Transform);
+}
 
+// Called every frame
+void AItemPickup::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
 }
 
 void AItemPickup::CheckLimit_Implementation() {

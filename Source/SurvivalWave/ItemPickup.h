@@ -125,7 +125,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 	AItemPickup();
 	
@@ -190,4 +191,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	bool ItemMapContainsSize(EItemType type);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Item")
+	void SetupSelection(bool bOverlapEnter);
 };

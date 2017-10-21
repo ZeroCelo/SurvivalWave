@@ -733,6 +733,7 @@ void ASurvivalWaveCharacter::PickupDetectionEnter(UPrimitiveComponent* Overlappe
 	AItemPickup* item = Cast<AItemPickup>(OtherActor);
 	if (item != nullptr) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Detect id%d quant%d limit%d type:%s"), item->ItemStat.id, item->ItemStat.quantity, item->ItemStat.limit, *FItem::GetItemEnumAsString(item->ItemStat.type)));
+		//item->SetupSelection(true);
 		str = item->ItemStat.GetNameID();
 		int32 item_id = item->ItemStat.GetID();
 		if (!items.Contains(item_id)) {
@@ -752,7 +753,9 @@ void ASurvivalWaveCharacter::PickupDetectionExit(UPrimitiveComponent* Overlapped
 	FString str("None");
 	AItemPickup* item = Cast<AItemPickup>(OtherActor);
 	if (item != nullptr) {
+		
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Detect id%d quant%d limit%d type:%s"), item->ItemStat.id, item->ItemStat.quantity, item->ItemStat.limit, *FItem::GetItemEnumAsString(item->ItemStat.type)));
+		item->SetupSelection(false);
 		str = item->ItemStat.GetNameID();
 		int32 item_id = item->ItemStat.GetID();
 		if (items.Contains(item_id)) {
@@ -792,6 +795,15 @@ void ASurvivalWaveCharacter::Death() {
 
 FItem ASurvivalWaveCharacter::GetPickup() {
 	if (items.Num()) {
+		//AItemPickup* temp = items_actor.Find(items.CreateConstIterator()->Value.id)[0];
+		//temp->SetupSelection(true);
+		for (auto& temp : items_actor) {
+			if (temp.Key == items.CreateConstIterator()->Value.id)
+				temp.Value->SetupSelection(true);
+			else
+				temp.Value->SetupSelection(false);
+		}
+		
 		return items.CreateConstIterator()->Value;
 	}
 	FItem ret; ret.quantity = -1;
