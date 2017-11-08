@@ -77,15 +77,17 @@ void ULifeStat::ShieldCallRecharge(bool bWait) {
 }
 
 void ULifeStat::ShieldRecharge() {
-	bRecharging = true;
-	Shield += ShieldRechargeAmount;
-	if (Shield > ShieldMax)Shield = ShieldMax;
-	if (Shield <= 0.0f)Shield = 0.0f;
+	if (!IsDead()) {
+		bRecharging = true;
+		Shield += ShieldRechargeAmount;
+		if (Shield > ShieldMax)Shield = ShieldMax;
+		if (Shield <= 0.0f)Shield = 0.0f;
 
-	if (Shield < ShieldMax && DoesShieldRecharge())
-		ShieldCallRecharge();
-	else
-		bRecharging = false;
+		if (Shield < ShieldMax && DoesShieldRecharge())
+			ShieldCallRecharge();
+		else
+			bRecharging = false;
+	}
 }
 
 void ULifeStat::RestoreLife_Implementation(float rest) {

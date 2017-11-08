@@ -97,6 +97,9 @@ public:
 	void UpdateHUDLife();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void UpdateHUDShield();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void DropItem(FTransform trans, FItem drop);
 
 	UFUNCTION(BlueprintCallable)
@@ -117,9 +120,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void GetKilled();
 
-	FTimerHandle DeadTimer;
-	FTimerHandle RefTimer;
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void GetHit(FHitResult HitResult);
 
-	void UpdateVariables();
+	FTimerHandle DeadTimer;
 	
 };

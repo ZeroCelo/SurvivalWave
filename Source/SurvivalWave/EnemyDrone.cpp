@@ -52,7 +52,6 @@ void AEnemyDrone::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	GetWorld()->GetTimerManager().SetTimer(RefTimer, this, &AEnemyDrone::UpdateVariables, 0.100f, false);
 }
 
 // Called every frame
@@ -67,24 +66,6 @@ void AEnemyDrone::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-}
-
-void AEnemyDrone::UpdateVariables() {
-	AAIDroneController* Drone = Cast<AAIDroneController>(GetController());
-	if (Drone != nullptr) {
-		Drone->MinRange = MinRange;
-		Drone->MaxRange = MaxRange;
-		Drone->StrafeTimeMin = StrafeTimeMin;
-		Drone->StrafeTimeMax = StrafeTimeMax;
-		Drone->StrafeDistMin = StrafeDistMin;
-		Drone->StrafeDistMax = StrafeDistMax;
-		Drone->FlyTimeMin = FlyTimeMin;
-		Drone->FlyTimeMax = FlyTimeMax;
-		Drone->FlyDistanceMin = FlyDistanceMin;
-		Drone->FlyDistanceMax = FlyDistanceMax;
-		Drone->AttackIntervalMin = AttackIntervalMin;
-		Drone->AttackIntervalMax = AttackIntervalMax;
-	}
 }
 
 void AEnemyDrone::DropItems() {
@@ -129,6 +110,7 @@ void AEnemyDrone::DetectDamage(UPrimitiveComponent* OverlappedComp, AActor* Othe
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Drone Taken Damage")));
 	LifeStats->DetectDamage(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	UpdateHUDLife();
+	UpdateHUDShield();
 	DetectDeath();
 }
 

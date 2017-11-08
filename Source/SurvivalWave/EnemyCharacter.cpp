@@ -106,6 +106,7 @@ void AEnemyCharacter::DetectDamage(UPrimitiveComponent* OverlappedComp, AActor* 
 {
 	LifeStats->DetectDamage(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	UpdateHUDLife();
+	UpdateHUDShield();
 	DetectDeath();
 }
 

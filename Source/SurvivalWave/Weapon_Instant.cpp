@@ -22,7 +22,7 @@ void AWeapon_Instant::ShootImpact(FHitResult HitResult) {
 			if(ImpactFX != nullptr)
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactFX, HitResult.ImpactPoint,HitResult.ImpactNormal.Rotation());
 			shot->SetVectorParameter(FName("ShockBeamEnd"), HitResult.ImpactPoint);
-			DetectDamage(HitResult.GetActor());
+			DetectDamage(HitResult.GetActor(),HitResult);
 		}
 		else {
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Miss Impact")));
@@ -60,7 +60,7 @@ void AWeapon_Instant::Shoot_Implementation() {
 			RV_Hit2,        //result
 			start2,    //start
 			end2, //end
-			ECC_Camera, //collision channel
+			ECC_Visibility, //collision channel
 			RV_TraceParams
 		);
 		FVector end_point = RV_Hit2.TraceEnd;
@@ -85,7 +85,8 @@ void AWeapon_Instant::Shoot_Implementation() {
 		RV_Hit,        //result
 		start,    //start
 		end, //end
-		ECC_Pawn, //collision channel
+		//ECC_Pawn, //collision channel
+		ECC_Visibility, //collision channel
 		RV_TraceParams
 	);
 	ShootImpact(RV_Hit);
@@ -93,13 +94,14 @@ void AWeapon_Instant::Shoot_Implementation() {
 	//HitLocation = RV_Hit.Location;
 }
 
-void AWeapon_Instant::DetectDamage(AActor* Act) {
+void AWeapon_Instant::DetectDamage(AActor* Act,FHitResult HitResult) {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Weapon Detect")));
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Act);
 	if (Enemy != nullptr) {
 		if (!Enemy->IsPendingKill()) {
 			Enemy->LifeStats->TakeDamage(DamageStats);
 			Enemy->UpdateHUDLife();
+			Enemy->UpdateHUDShield();
 			Enemy->DetectDeath();
 			AAISimpleController* con = Cast<AAISimpleController>(Enemy->GetController());
 			if (con != nullptr) {
@@ -112,7 +114,9 @@ void AWeapon_Instant::DetectDamage(AActor* Act) {
 		if (!EnemyDrone->IsPendingKill()) {
 			EnemyDrone->LifeStats->TakeDamage(DamageStats);
 			EnemyDrone->UpdateHUDLife();
+			EnemyDrone->UpdateHUDShield();
 			EnemyDrone->DetectDeath();
+			EnemyDrone->GetHit(HitResult);
 		}
 	}
 	ASurvivalWaveCharacter* Player = Cast<ASurvivalWaveCharacter>(Act);
@@ -120,6 +124,7 @@ void AWeapon_Instant::DetectDamage(AActor* Act) {
 		if (!Player->IsPendingKill()) {
 			Player->LifeStats->TakeDamage(DamageStats);
 			Player->UpdateHUDLife();
+			Player->UpdateHUDShield();
 			//Player->DetectDeath();
 		}
 	}

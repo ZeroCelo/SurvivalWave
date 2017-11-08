@@ -84,6 +84,7 @@ public:
 
 	bool IsPointReachable(FVector Position);
 
+	void UpdateVariables(); 
 	void MoveToLocation(FVector new_loc);
 	void EnemyRefErrorCheck();
 	void FlyDrone();

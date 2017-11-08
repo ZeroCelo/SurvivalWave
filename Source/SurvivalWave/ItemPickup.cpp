@@ -8,6 +8,7 @@ TMap<EItemType, UMaterialInstance*> AItemPickup::ItemMapMaterial;
 TMap<EItemType, UStaticMesh*> AItemPickup::ItemMapMesh;
 TMap<EItemType, FVector> AItemPickup::ItemMapSize;
 TMap<EItemType, int32> AItemPickup::ItemMapLimit;
+TMap<EItemType, FLinearColor> AItemPickup::ItemMapSelect;
 
 AItemPickup::AItemPickup():Super(){
 
@@ -68,6 +69,10 @@ FVector AItemPickup::ItemMapGetSize(EItemType type) {
 	return ItemMapSize[type];
 }
 
+FLinearColor AItemPickup::ItemMapGetSelect(EItemType type) {
+	return ItemMapSelect[type];
+}
+
 bool AItemPickup::ItemMapContainsLimit(EItemType type) {
 	return ItemMapLimit.Contains(type);
 }
@@ -82,6 +87,10 @@ bool AItemPickup::ItemMapContainsMesh(EItemType type) {
 
 bool AItemPickup::ItemMapContainsSize(EItemType type) {
 	return ItemMapSize.Contains(type);
+}
+
+bool AItemPickup::ItemMapContainsSelect(EItemType type) {
+	return ItemMapSelect.Contains(type);
 }
 
 void AItemPickup::ItemMapAdd(EItemType type, UMaterialInstance* Mat, UStaticMesh* Mesh, FVector Size) {
@@ -124,5 +133,13 @@ void AItemPickup::ItemMapAddSize(EItemType type, FVector Size) {
 	else {
 		ItemMapSize[type] = Size;
 	}
+}
 
+void AItemPickup::ItemMapAddSelect(EItemType type, FLinearColor Size) {
+	if (!ItemMapSelect.Contains(type)) {
+		ItemMapSelect.Add(type, Size);
+	}
+	else {
+		ItemMapSelect[type] = Size;
+	}
 }

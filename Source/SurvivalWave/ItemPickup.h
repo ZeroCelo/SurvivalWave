@@ -152,6 +152,7 @@ public:
 	static TMap<EItemType, UStaticMesh*> ItemMapMesh;
 	static TMap<EItemType, FVector> ItemMapSize;
 	static TMap<EItemType, int32> ItemMapLimit;
+	static TMap<EItemType, FLinearColor> ItemMapSelect;
 
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	void ItemMapAdd(EItemType type, UMaterialInstance* Mat, UStaticMesh* Mesh, FVector Size);
@@ -169,6 +170,9 @@ public:
 	void ItemMapAddSize(EItemType type, FVector Size);
 
 	UFUNCTION(BlueprintCallable, Category = "Item")
+	void ItemMapAddSelect(EItemType type, FLinearColor Size);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
 	int32 ItemMapGetLimit(EItemType type);
 
 	UFUNCTION(BlueprintCallable, Category = "Item")
@@ -181,6 +185,9 @@ public:
 	FVector ItemMapGetSize(EItemType type);
 
 	UFUNCTION(BlueprintCallable, Category = "Item")
+	FLinearColor ItemMapGetSelect(EItemType type);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
 	bool ItemMapContainsLimit(EItemType type);
 
 	UFUNCTION(BlueprintCallable, Category = "Item")
@@ -191,6 +198,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	bool ItemMapContainsSize(EItemType type);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	bool ItemMapContainsSelect(EItemType type);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Item")
 	void SetupSelection(bool bOverlapEnter);

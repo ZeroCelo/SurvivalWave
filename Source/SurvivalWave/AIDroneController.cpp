@@ -41,8 +41,30 @@ void AAIDroneController::BeginPlay()
 void AAIDroneController::EnemyRefErrorCheck() {
 	EnemyRef = Cast<AEnemyDrone>(GetPawn());
 	if (EnemyRef != nullptr) {
+		UpdateVariables();
 		GetWorld()->GetTimerManager().ClearTimer(RefTimer);
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AI Refing Ueah...")));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AI Drone Ueah...")));
+	}
+	
+
+}
+
+void AAIDroneController::UpdateVariables() {
+	AEnemyDrone* Drone = Cast<AEnemyDrone>(GetPawn());
+	if (Drone != nullptr) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AI Updating...")));
+		MinRange = Drone->MinRange;
+		MaxRange = Drone->MaxRange;
+		StrafeTimeMin = Drone->StrafeTimeMin;
+		StrafeTimeMax = Drone->StrafeTimeMax;
+		StrafeDistMin = Drone->StrafeDistMin;
+		StrafeDistMax = Drone->StrafeDistMax;
+		FlyTimeMin = Drone->FlyTimeMin;
+		FlyTimeMax = Drone->FlyTimeMax;
+		FlyDistanceMin = Drone->FlyDistanceMin;
+		FlyDistanceMax = Drone->FlyDistanceMax;
+		AttackIntervalMin = Drone->AttackIntervalMin;
+		AttackIntervalMax = Drone->AttackIntervalMax;
 	}
 }
 

@@ -27,5 +27,5 @@ class SURVIVALWAVE_API AWeapon_Instant : public AWeapon
 	
 	void ShootImpact(FHitResult HitResult);
 
-	void DetectDamage(AActor* Act);
+	void DetectDamage(AActor* Act, FHitResult HitResult);
 };

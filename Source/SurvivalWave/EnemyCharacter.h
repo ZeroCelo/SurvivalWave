@@ -35,6 +35,9 @@ public:
 	void UpdateHUDLife();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void UpdateHUDShield();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void DropItem(FTransform trans, FItem drop);
 
 	UFUNCTION(BlueprintCallable)
