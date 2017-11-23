@@ -166,6 +166,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool CanReloadGun();
+
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool CanDodge();
 	
 	void EnableRun();
 	void DisableRun();
@@ -193,6 +196,7 @@ public:
 	void ReloadGunPress();
 	void InventoryPress();
 	void InteractPress();
+	void DodgePress();
 
 	float LastFireTime;
 	FTimerHandle TriggerTimer;
@@ -225,6 +229,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetupWeaponIndexBP(int32 index);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void DodgePressBP();
 	
 	//Array of weapons that was pickup, null in case nothing was picked up
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
@@ -248,52 +255,52 @@ public:
 	//int32 weapon_select_new;
 
 	UFUNCTION(BlueprintCallable, Category = "Setter")
-	void SetSwitching(bool val) { bswitching = val; }
+	void SetSwitching(bool val) { bSwitching = val; }
 
 	UFUNCTION(BlueprintCallable, Category = "Setter")
-	void SetFiring(bool val) { bfiring = val; }
+	void SetFiring(bool val) { bFiring = val; }
 
 	UFUNCTION(BlueprintCallable, Category = "Setter")
-	void SetAiming(bool val) { baiming = val; }
+	void SetAiming(bool val) { bAiming = val; }
 
 	UFUNCTION(BlueprintCallable, Category = "Setter")
-	void SetRunning(bool val) { brunning = val; }
+	void SetRunning(bool val) { bRunning = val; }
 
 	UFUNCTION(BlueprintCallable, Category = "Setter")
 	void SetReloading(bool val) { bReloading = val; }
 		
 	UFUNCTION(BlueprintCallable, Category = "Getter")
-	bool GetSwitching() { return bswitching; }
+	bool GetSwitching() { return bSwitching; }
 
 	UFUNCTION(BlueprintCallable, Category = "Getter")
-	bool GetFiring() { return bfiring; }
+	bool GetFiring() { return bFiring; }
 
 	UFUNCTION(BlueprintCallable, Category = "Getter")
-	bool GetRunning() { return brunning; }
+	bool GetRunning() { return bRunning; }
 
 	UFUNCTION(BlueprintCallable, Category = "Getter")
-	bool GetAiming() { return baiming; }
+	bool GetAiming() { return bAiming; }
 
 	UFUNCTION(BlueprintCallable, Category = "Getter")
-	bool GetInventory() { return binventory; }
+	bool GetInventory() { return bInventory; }
 
 	UFUNCTION(BlueprintCallable, Category = "Getter")
 	bool GetReloading() { return bReloading; }
 		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
-	bool bswitching;
+	bool bSwitching;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
-	bool bfiring;
+	bool bFiring;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
-	bool brunning;
+	bool bRunning;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
-	bool baiming;
+	bool bAiming;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Moving")
-	bool binventory;
+	bool bInventory;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Combat")
 	bool bReloading;
@@ -327,6 +334,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")
 	FVector cam_inventory;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HUD")
+	float DodgeDistance;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HUD")
+	float DodgeMaxTime;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
+	float DodgeElapsedTime;
 
 	//Maximum time in seconds for the Camera FOV/POS change animation
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cam")

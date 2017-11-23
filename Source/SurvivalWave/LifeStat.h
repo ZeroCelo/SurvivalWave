@@ -78,6 +78,9 @@ public:
 	float GetShieldMax() { return ShieldMax; }
 
 	UFUNCTION(BlueprintCallable)
+	void SetShieldActive(bool bActive);
+
+	UFUNCTION(BlueprintCallable)
 	bool NeedHealing();
 
 	UFUNCTION(BlueprintCallable)

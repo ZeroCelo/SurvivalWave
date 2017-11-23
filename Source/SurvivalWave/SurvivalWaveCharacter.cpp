@@ -67,27 +67,33 @@ ASurvivalWaveCharacter::ASurvivalWaveCharacter()
 	
 	run_forward = 0.0f;
 	brun_press = false;
-	brunning = false;
-	baiming = false;
-	bfiring = false;
-	bswitching = false;
-	binventory = false;
+	bRunning = false;
+	bAiming = false;
+	bFiring = false;
+	bSwitching = false;
+	bInventory = false;
 	speed_run = 600.0f;
 	speed_normal = 250.0f;
 	fov_normal = 90.0f;
-	cam_normal = CameraBoom->SocketOffset;
-	fov_inventory = 90.0f;
-	cam_inventory = cam_normal;
-	fov_aim = 60.0f;
-	cam_aim = cam_normal;
+	//cam_normal = CameraBoom->SocketOffset;
+	cam_normal = FVector(0.0f,50.0f,10.0f);
+	fov_inventory = 100.0f;
+	//cam_inventory = cam_normal;
+	cam_inventory = FVector(0.0f, 150.0f, -40.0f);
+	fov_aim = 70.0f;
+	//cam_aim = cam_normal;
+	cam_aim = FVector(50.0f, 50.0f, 0.0f);
 	fov_run = 120.0f;
-	cam_run = cam_normal;
+	//cam_run = cam_normal;
+	cam_run = FVector(50.0f, 25.0f, -40.0f);
 	cam_check = CameraBoom->SocketOffset;
 	fov_check = fov_normal;
-	fov_max_time = 1.0f;
+	fov_max_time = 0.750f;
 	fov_elapsed = 100.0f;
 	weapon_select = 0;
 	DeathTime = 5.0f;
+	DodgeDistance = 3000.0f;
+	DodgeMaxTime = 2.0f;
 	//weapon_select_new = 0;
 	Weapon.Add(nullptr);
 	Weapon.Add(nullptr);
@@ -139,6 +145,7 @@ void ASurvivalWaveCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("SelectWeapon1", IE_Pressed, this, &ASurvivalWaveCharacter::FirstGunPress);
 	PlayerInputComponent->BindAction("SelectWeapon2", IE_Pressed, this, &ASurvivalWaveCharacter::SecondGunPress);
 	PlayerInputComponent->BindAction("SelectWeaponPistol", IE_Pressed, this, &ASurvivalWaveCharacter::PistolGunPress);
+	PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &ASurvivalWaveCharacter::DodgePress);
 }
 
 void ASurvivalWaveCharacter::OnResetVR()
@@ -170,7 +177,7 @@ void ASurvivalWaveCharacter::LookUpAtRate(float Rate)
 
 void ASurvivalWaveCharacter::MoveForward(float Value)
 {
-	if ((Controller != NULL))
+	if ((Controller != nullptr))
 	//if ((Controller != NULL) && (Value != 0.0f))
 	{
 		// find out which way is forward
@@ -183,7 +190,7 @@ void ASurvivalWaveCharacter::MoveForward(float Value)
 
 		//if(Value >= 0.0f)
 			//CheckRun();
-		if(brunning && Value < 0.0f)
+		if(bRunning && Value < 0.0f)
 			AddMovementInput(Direction, 0.0f);
 		else
 			AddMovementInput(Direction, Value); 
@@ -193,7 +200,7 @@ void ASurvivalWaveCharacter::MoveForward(float Value)
 			run_forward = 0.0f;
 		}
 		
-		if (!brunning) {
+		if (!bRunning) {
 			AddMovementInput(Direction, Value);
 			if (brun_press && Value > 0.0f) {
 				run_forward = Value;
@@ -211,7 +218,7 @@ void ASurvivalWaveCharacter::MoveForward(float Value)
 
 void ASurvivalWaveCharacter::MoveRight(float Value)
 {
-	if ( (Controller != NULL) && (Value != 0.0f) && !brunning)
+	if ( (Controller != NULL) && (Value != 0.0f) && !bRunning)
 	{
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -221,7 +228,7 @@ void ASurvivalWaveCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire DirRight %f,%f,%f (%f)"), Direction.X, Direction.Y, Direction.Z,Value));
-		if (!brunning)
+		if (!bRunning)
 			AddMovementInput(Direction, Value);
 		else
 			TurnAtRate(Value);
@@ -305,48 +312,53 @@ void ASurvivalWaveCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateCam(DeltaTime);
+	DodgeElapsedTime += DeltaTime;
 	//UpdateDeathCam(DeltaTime);
 	//UpdateFOV(DeltaTime);
 	//UpdateCamPos(DeltaTime);
 }
 
 bool ASurvivalWaveCharacter::CanRun() {
-	return (!bswitching && !bReloading && !binventory && brun_press);
+	return (!bSwitching && !bReloading && !bInventory && brun_press);
 }
 
 bool ASurvivalWaveCharacter::CanAim() {
-	return !binventory;
+	return !bInventory;
 }
 
 bool ASurvivalWaveCharacter::CanFire() {
-	return (!bswitching && !binventory && !bReloading);
+	return (!bSwitching && !bInventory && !bReloading);
 }
 
 bool ASurvivalWaveCharacter::CanInventory() {
-	return (!bfiring && !baiming && !brunning && !bReloading);
+	return (!bFiring && !bAiming && !bRunning && !bReloading);
 }
 
 bool ASurvivalWaveCharacter::CanInteract() {
-	return (!binventory);
+	return (!bInventory);
 }
 
 bool ASurvivalWaveCharacter::CanSwitch() {
-	return (!bswitching && !bReloading);
+	return (!bSwitching && !bReloading);
 }
 
 bool ASurvivalWaveCharacter::CanDropGun() {
-	return (!brunning && !baiming && !bReloading);
+	return (!bRunning && !bAiming && !bReloading);
 }
 
 bool ASurvivalWaveCharacter::CanReloadGun() {
-	return (!brunning && !binventory && !bswitching && !bReloading);
+	return (!bRunning && !bInventory && !bSwitching && !bReloading);
+}
+
+bool ASurvivalWaveCharacter::CanDodge() {
+	return (!bRunning && !bInventory && !bSwitching && !bReloading && !bAiming);
 }
 
 void ASurvivalWaveCharacter::CheckRun() {
 	if (CanRun()) {
 		ReleaseTrigger();
-		brunning = true;
-		baiming = false;
+		bRunning = true;
+		bAiming = false;
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
 		GetCharacterMovement()->MaxWalkSpeed = speed_run;
 		//FollowCamera->FieldOfView = fov_normal;
@@ -367,8 +379,8 @@ void ASurvivalWaveCharacter::EnableRun() {
 	//CheckCam();
 	if (CanRun()) {
 		ReleaseTrigger();
-		brunning = true;
-		baiming = false;
+		bRunning = true;
+		bAiming = false;
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Run")));
 		GetCharacterMovement()->MaxWalkSpeed = speed_run;
 		//FollowCamera->FieldOfView = fov_normal;
@@ -384,7 +396,7 @@ void ASurvivalWaveCharacter::EnableRun() {
 
 void ASurvivalWaveCharacter::DisableRun() {
 	brun_press = false;
-	brunning = false;
+	bRunning = false;
 	GetCharacterMovement()->MaxWalkSpeed = speed_normal;
 	//FollowCamera->FieldOfView = fov_normal;
 	//if(!aiming)ChangeFOV(fov_normal);
@@ -395,8 +407,8 @@ void ASurvivalWaveCharacter::DisableRun() {
 
 void ASurvivalWaveCharacter::EnableAim() {
 	if (CanAim()) {
-		baiming = true;
-		brunning = false;
+		bAiming = true;
+		bRunning = false;
 		GetCharacterMovement()->MaxWalkSpeed = speed_normal;
 		//FollowCamera->FieldOfView = fov_aim;
 		//ChangeFOV(fov_aim);
@@ -409,7 +421,7 @@ void ASurvivalWaveCharacter::EnableAim() {
 }
 
 void ASurvivalWaveCharacter::DisableAim() {
-	baiming = false;
+	bAiming = false;
 	//FollowCamera->FieldOfView = fov_normal;
 	//if(!running)ChangeFOV(fov_normal);
 	UpdateAnimAim();
@@ -420,7 +432,7 @@ void ASurvivalWaveCharacter::DisableAim() {
 void ASurvivalWaveCharacter::PullTrigger() {
 	if (CanFire()) {
 		DisableRun();
-		bfiring = true;
+		bFiring = true;
 		if (Weapon[weapon_select] != nullptr) {
 			if(Weapon[weapon_select]->TargetCamera == nullptr)
 				Weapon[weapon_select]->TargetCamera = FollowCamera;
@@ -434,7 +446,7 @@ void ASurvivalWaveCharacter::PullTrigger() {
 }
 
 void ASurvivalWaveCharacter::ReleaseTrigger() {
-	bfiring = false;
+	bFiring = false;
 	if (Weapon[weapon_select] != nullptr)
 		Weapon[weapon_select]->StopFire();
 	GetWorld()->GetTimerManager().ClearTimer(TriggerTimer);
@@ -444,7 +456,7 @@ void ASurvivalWaveCharacter::ReleaseTrigger() {
 }
 
 void ASurvivalWaveCharacter::StartFire() {
-	bfiring = true;
+	bFiring = true;
 	/*if (Weapon[weapon_select] != nullptr) {
 		
 		float game_time = GetWorld()->GetTimeSeconds();
@@ -461,7 +473,7 @@ void ASurvivalWaveCharacter::StartFire() {
 }
 
 void ASurvivalWaveCharacter::StopFire() {
-	bfiring = false;
+	bFiring = false;
 
 	UpdateAnimFire();
 	UpdateHUDWeapon();
@@ -478,7 +490,7 @@ void ASurvivalWaveCharacter::FirstGunPress() {
 	if (CanSwitch() && weapon_select != 1) {
 		if (Weapon[1] != nullptr) {
 			weapon_select_next = 1;
-			bswitching = true;
+			bSwitching = true;
 			ReleaseTrigger();
 			//DisableAim();
 			DisableRun();
@@ -491,7 +503,7 @@ void ASurvivalWaveCharacter::SecondGunPress() {
 	if (CanSwitch() && weapon_select != 2) {
 		if (Weapon[2] != nullptr) {
 			weapon_select_next = 2;
-			bswitching = true;
+			bSwitching = true;
 			ReleaseTrigger();
 			//DisableAim();
 			DisableRun();
@@ -504,7 +516,7 @@ void ASurvivalWaveCharacter::PistolGunPress() {
 	if (CanSwitch() && weapon_select != 0) {
 		if (Weapon[0] != nullptr) {
 			weapon_select_next = 0;
-			bswitching = true;
+			bSwitching = true;
 			ReleaseTrigger();
 			//DisableAim();
 			DisableRun();
@@ -520,7 +532,7 @@ void ASurvivalWaveCharacter::NextGunPress() {
 			if (weapon_select_next >= Weapon.Num())weapon_select_next = 0;
 			if (Weapon[weapon_select_next] != nullptr) {
 				if (weapon_select_next == weapon_select) break;
-				bswitching = true;
+				bSwitching = true;
 				ReleaseTrigger();
 				//DisableAim();
 				DisableRun();
@@ -541,7 +553,7 @@ void ASurvivalWaveCharacter::PreviousGunPress() {
 			if (weapon_select_next < 0)weapon_select_next = Weapon.Num() - 1;
 			if (Weapon[weapon_select_next] != nullptr) {
 				if (weapon_select_next == weapon_select) break;
-				bswitching = true;
+				bSwitching = true;
 				ReleaseTrigger();
 				//DisableAim();
 				DisableRun();
@@ -574,7 +586,7 @@ void ASurvivalWaveCharacter::DropGunPress() {
 
 void ASurvivalWaveCharacter::InventoryPress() {
 	if (CanInventory()) {
-		binventory = !binventory;
+		bInventory = !bInventory;
 		CheckCam();
 		UpdateHUDItem();
 		ShowHUDItem();
@@ -667,6 +679,27 @@ void ASurvivalWaveCharacter::PausePress() {
 	PausePressBP();
 }
 
+void ASurvivalWaveCharacter::DodgePress() {
+	if (CanDodge()) {
+		if (DodgeElapsedTime > DodgeMaxTime) {
+			DodgeElapsedTime = 0.0f;
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Dodging!")));
+
+			FVector Direction = GetVelocity();
+			Direction.Normalize();
+
+			FVector start = GetActorLocation();
+			FVector end = start + Direction*DodgeDistance;
+
+			LaunchCharacter(end, false, false);
+			//GetCharacterMovement()->GroundFriction = 0.0f;
+			//GetCharacterMovement()->AddImpulse(end, true);
+			//GetWorld()->GetTimerManager().SetTimer(DodgeTimer, this, &ASurvivalWaveCharacter::DodgeReset, DodgeResetTime, false);
+			DodgePressBP();
+		}
+	}
+}
+
 void ASurvivalWaveCharacter::ChangeCam(FVector new_pos, float new_fov) {
 	fov_check = new_fov;
 	cam_check = new_pos;
@@ -677,13 +710,13 @@ void ASurvivalWaveCharacter::ChangeCam(FVector new_pos, float new_fov) {
 void ASurvivalWaveCharacter::CheckCam() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Vel %f,%f,%f"), GetVelocity().X,GetVelocity().Y, GetVelocity().Z));
 
-	if (baiming && !brunning) {
+	if (GetAiming() && !GetRunning()) {
 		ChangeCam(cam_aim, fov_aim);
 	}
-	else if (!baiming && brunning) {
+	else if (!GetAiming() && GetRunning()) {
 		ChangeCam(cam_run, fov_run);
 	}
-	else if (baiming && brunning) {
+	else if (GetAiming() && GetRunning()) {
 		if (GetCharacterMovement()->MaxWalkSpeed == speed_run) {
 			ChangeCam(cam_run, fov_run);
 		}
@@ -691,7 +724,7 @@ void ASurvivalWaveCharacter::CheckCam() {
 			ChangeCam(cam_aim, fov_aim);
 		}
 	}
-	else if (binventory) {
+	else if (GetInventory()) {
 		ChangeCam(cam_inventory, fov_inventory);
 	}
 	else {

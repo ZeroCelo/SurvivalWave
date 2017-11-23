@@ -64,6 +64,12 @@ bool ULifeStat::IsShieldActive() {
 	return bShieldActive && Shield > 0.0f;
 }
 
+void ULifeStat::SetShieldActive(bool bActive) {
+	bShieldActive = bActive;
+	if (bShieldActive)
+		ShieldCallRecharge(false);
+}
+
 void ULifeStat::ShieldCallRecharge(bool bWait) {
 	if (bWait) {
 		GetWorld()->GetTimerManager().ClearTimer(RechargeTimer);
